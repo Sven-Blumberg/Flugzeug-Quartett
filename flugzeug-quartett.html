@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Flugzeug Quartett">
+<title>Flugzeug Quartett</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--sky-top:#0a1628;--sky-mid:#1a3a5c;--sky-bot:#2980b9;--card-w:300px;--card-h:460px;--radius:16px;--shadow:0 8px 32px rgba(0,0,0,.35);--gold:#f1c40f;--green:#2ecc71;--red:#e74c3c;--safe-b:env(safe-area-inset-bottom,0px)}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{font-family:'Nunito',system-ui,sans-serif;background:linear-gradient(170deg,var(--sky-top),var(--sky-mid) 40%,var(--sky-bot));color:#fff;min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;padding-bottom:var(--safe-b)}
+button,input,select,textarea{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(1px 1px at 10% 20%,#fff 100%,transparent 0),radial-gradient(1px 1px at 30% 60%,#fff 100%,transparent 0),radial-gradient(1.5px 1.5px at 50% 10%,#fff 100%,transparent 0),radial-gradient(1px 1px at 70% 40%,#fff 100%,transparent 0),radial-gradient(1.5px 1.5px at 90% 80%,#fff 100%,transparent 0),radial-gradient(1px 1px at 15% 90%,#fff 100%,transparent 0),radial-gradient(1px 1px at 55% 50%,#fff 100%,transparent 0),radial-gradient(1.5px 1.5px at 80% 15%,#fff 100%,transparent 0);animation:twinkle 4s ease-in-out infinite alternate}
+@keyframes twinkle{from{opacity:.4}to{opacity:1}}
+.container{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:20px;padding-top:max(20px,env(safe-area-inset-top))}
+.screen{display:none}.screen.active{display:flex;flex-direction:column;align-items:center}
+#start-screen{justify-content:center;min-height:100vh;min-height:100dvh;text-align:center;gap:30px}
+.game-title{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;text-transform:uppercase;letter-spacing:2px;text-shadow:0 4px 20px rgba(0,0,0,.5);line-height:1.1}
+.game-title .accent{color:var(--gold)}
+.title-plane{font-size:5rem;display:block;animation:flyBounce 3s ease-in-out infinite}
+@keyframes flyBounce{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-18px) rotate(2deg)}}
+.subtitle{font-size:1.2rem;opacity:.8;font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 40px;font-family:inherit;font-size:1.15rem;font-weight:800;border:none;border-radius:50px;cursor:pointer;transition:all .2s;text-decoration:none;text-transform:uppercase;letter-spacing:1px;-webkit-user-select:none;user-select:none}
+.btn:active{transform:scale(.95)!important;opacity:.9}
+.btn-primary{background:linear-gradient(135deg,var(--gold),#e67e22);color:#1a1a2e}
+.btn-secondary{background:rgba(255,255,255,.12);color:#fff;backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,.25)}
+.btn-danger{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff}
+.btn-success{background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff}
+.btn-sm{padding:10px 24px;font-size:.9rem}
+.btn-xs{padding:7px 14px;font-size:.8rem}
+.start-links{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+#setup-screen{gap:20px;padding-top:40px;min-height:100vh}
+.setup-title{font-size:2rem;font-weight:900}
+.setup-sub{opacity:.7;font-weight:600;margin-bottom:10px}
+.players-config{display:flex;flex-direction:column;gap:12px;width:100%;max-width:600px}
+.player-setup-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.08);backdrop-filter:blur(10px);padding:14px 20px;border-radius:16px;border:2px solid rgba(255,255,255,.12);transition:all .2s}
+.player-color{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.player-setup-row input[type="text"]{flex:1;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 14px;color:#fff;font-family:inherit;font-size:1rem;font-weight:700}
+.player-setup-row input[type="text"]:focus{outline:none;border-color:var(--gold)}
+.player-setup-row input::placeholder{color:rgba(255,255,255,.3)}
+.type-toggle{display:flex;border-radius:10px;overflow:hidden;border:2px solid rgba(255,255,255,.15);flex-shrink:0}
+.type-toggle button{padding:6px 14px;font-family:inherit;font-size:.8rem;font-weight:700;border:none;cursor:pointer;transition:all .15s;background:transparent;color:rgba(255,255,255,.5)}
+.type-toggle button.active{background:var(--gold);color:#1a1a2e}
+.player-remove{background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:1.2rem;padding:4px 8px;border-radius:8px}
+.setup-btns{margin:8px 0}
+.setup-start{display:flex;gap:16px;margin-top:20px;flex-wrap:wrap;justify-content:center}
+.setup-card-info{margin-top:16px;opacity:.5;font-size:.85rem;font-weight:600}
+.player-bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:100%;max-width:900px;margin-bottom:8px}
+.player-chip{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:40px;font-weight:700;font-size:.9rem;border:2px solid transparent;transition:all .2s;background:rgba(255,255,255,.07)}
+.player-chip.active-turn{border-color:var(--gold);background:rgba(241,196,15,.12);box-shadow:0 0 16px rgba(241,196,15,.25)}
+.player-chip.eliminated{opacity:.3;text-decoration:line-through}
+.player-chip .chip-dot{width:10px;height:10px;border-radius:50%}
+.player-chip .chip-count{background:rgba(255,255,255,.15);padding:2px 8px;border-radius:12px;font-size:.8rem;margin-left:4px}
+.game-area{display:flex;align-items:flex-start;justify-content:center;gap:32px;width:100%;flex-wrap:wrap;margin-top:8px}
+.active-card-area{display:flex;flex-direction:column;align-items:center;gap:8px}
+.active-label{font-weight:800;font-size:.95rem;text-transform:uppercase;letter-spacing:2px;opacity:.7}
+.opponents-area{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;align-items:flex-start;flex:1;min-width:0}
+.opponent-slot{display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .3s}
+.opponent-slot .opp-label{font-size:.8rem;font-weight:700;opacity:.7;display:flex;align-items:center;gap:6px}
+.opponent-slot .opp-label .opp-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.card{width:var(--card-w);min-height:var(--card-h);border-radius:var(--radius);position:relative;transform-style:preserve-3d;transition:transform .6s ease}
+.card.flipped{transform:rotateY(180deg)}
+.card-front,.card-back{border-radius:var(--radius);backface-visibility:hidden;overflow:hidden}
+.card-front{background:#fff;color:#222;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.card-back{position:absolute;inset:0;transform:rotateY(180deg);background:linear-gradient(135deg,#1a237e,#283593);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center}
+.card-back-pattern{width:85%;height:85%;border:3px solid rgba(255,255,255,.25);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,255,255,.03) 10px,rgba(255,255,255,.03) 20px)}
+.card-back-pattern .back-icon{font-size:3rem}.card-back-pattern .back-text{font-weight:800;font-size:.85rem;text-transform:uppercase;letter-spacing:3px;opacity:.6}
+.card.small{width:180px;min-height:280px;--card-w:180px;--card-h:280px}
+.card.small .card-emoji{font-size:2rem}.card.small .card-image{height:70px}.card.small .card-name{font-size:.85rem;padding:4px 10px}.card.small .card-stats td{font-size:.7rem;padding:3px 6px}.card.small .card-header{padding:8px 12px}.card.small .card-back-pattern .back-icon{font-size:2rem}
+.card-header{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;color:#fff}
+.card-group-badge{background:rgba(0,0,0,.25);padding:3px 10px;border-radius:8px;font-weight:800;font-size:.8rem}
+.card-category{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.9}
+.card-image{height:100px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,rgba(0,0,0,.03),transparent)}
+.card-image img{width:100%;height:100%;object-fit:cover}
+.card-emoji{font-size:3rem}
+.card-name{padding:6px 16px;font-weight:800;font-size:1rem;text-align:center;color:#1a1a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-stats{padding:4px 10px;flex:1}
+.card-stats table{width:100%;border-collapse:collapse}
+.card-stats tr{cursor:default;border-radius:8px;transition:all .15s}
+.card-stats tr.clickable{cursor:pointer;padding:2px 0}
+.card-stats tr.clickable:active{background:#ddeeff;transform:scale(1.03)}
+.card-stats td{padding:5px 8px;font-size:.8rem;font-weight:600}
+.card-stats td:first-child{color:#666;width:48%}
+.card-stats td:last-child{text-align:right;font-weight:800;color:#1a1a2e}
+.card-stats tr.highlight-win td{color:var(--green)!important;font-weight:900}
+.card-stats tr.highlight-lose td{color:var(--red)!important;font-weight:900}
+.card-stats tr.highlight-tie td{color:var(--gold)!important;font-weight:900}
+.card-stats tr.selected-stat{background:#e8f4ff;border-radius:6px}
+.message-bar{background:rgba(255,255,255,.1);backdrop-filter:blur(10px);padding:12px 28px;border-radius:40px;font-weight:700;font-size:1rem;text-align:center;border:1px solid rgba(255,255,255,.15);min-height:48px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:700px}
+.result-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:100}
+.result-overlay.active{display:flex}
+.result-box{background:linear-gradient(145deg,#1a1a3e,#2a2a5e);border-radius:24px;padding:36px 44px;text-align:center;max-width:500px;width:92%;border:2px solid rgba(255,255,255,.1);box-shadow:0 20px 60px rgba(0,0,0,.5);animation:popIn .4s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes popIn{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+.result-icon{font-size:3.5rem;margin-bottom:10px}.result-title{font-size:1.6rem;font-weight:900;margin-bottom:14px}.result-text{font-size:.95rem;opacity:.7;margin-top:14px}
+.result-compare{text-align:left;max-height:300px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.result-row{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:12px;margin-bottom:6px;background:rgba(255,255,255,.06)}
+.result-row.winner{background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3)}
+.result-row .rr-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.result-row .rr-name{flex:1;font-weight:700;font-size:.9rem}
+.result-row .rr-aircraft{font-size:.75rem;opacity:.6;font-weight:600}
+.result-row .rr-value{font-weight:900;font-size:1.1rem}
+.result-stat-label{text-align:center;font-weight:800;font-size:1rem;margin-bottom:12px;opacity:.8}
+#end-screen{justify-content:center;min-height:100vh;text-align:center;gap:24px}
+.end-icon{font-size:6rem}.end-title{font-size:2.5rem;font-weight:900}.end-text{font-size:1.15rem;opacity:.8}
+.admin-gear{position:fixed;top:max(16px,env(safe-area-inset-top));right:16px;z-index:50;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.1);backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,.2);color:#fff;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.admin-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;display:none}
+.admin-backdrop.active{display:block}
+.admin-sidebar{position:fixed;top:0;right:-420px;width:400px;max-width:90vw;height:100vh;height:100dvh;background:linear-gradient(180deg,#0f1923,#1a3040);z-index:200;transition:right .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,.1);box-shadow:-8px 0 40px rgba(0,0,0,.4)}
+.admin-sidebar.open{right:0}
+.sidebar-header{display:flex;align-items:center;justify-content:space-between;padding:max(20px,env(safe-area-inset-top)) 20px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-header h2{font-size:1.2rem;display:flex;align-items:center;gap:8px}
+.sidebar-close{background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;padding:8px 12px;border-radius:8px;opacity:.6}
+.sidebar-actions{display:flex;gap:8px;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.06);flex-wrap:wrap}
+.sidebar-count{padding:10px 20px;font-size:.8rem;opacity:.5;font-weight:700}
+.sidebar-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:var(--safe-b)}
+.sidebar-cards{padding:0 12px 20px}
+.sb-card{background:rgba(255,255,255,.05);border-radius:12px;margin-bottom:8px;border:1px solid rgba(255,255,255,.08);overflow:hidden}
+.sb-card-head{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.sb-card-head .sb-badge{padding:2px 8px;border-radius:6px;font-weight:800;font-size:.7rem;color:#fff}
+.sb-card-head .sb-name{flex:1;font-weight:700;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-card-head .sb-emoji{font-size:1.1rem}
+.sb-card-actions{display:flex;gap:4px;padding:0 10px 10px;justify-content:flex-end}
+.sb-card-actions button{padding:6px 14px;font-size:.75rem;font-weight:700;border:none;border-radius:8px;cursor:pointer}
+.sb-card-actions .sb-edit{background:rgba(255,255,255,.1);color:#fff}
+.sb-card-actions .sb-del{background:rgba(231,76,60,.15);color:#e74c3c}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:300}
+.modal-overlay.active{display:flex}
+.modal{background:#1e2a3a;border-radius:20px;padding:28px;max-width:520px;width:92%;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid rgba(255,255,255,.1);box-shadow:0 20px 60px rgba(0,0,0,.5);animation:popIn .3s cubic-bezier(.175,.885,.32,1.275)}
+.modal h2{font-size:1.3rem;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:.8rem;font-weight:700;margin-bottom:5px;opacity:.8}
+.form-group input,.form-group select{width:100%;padding:10px 12px;border:2px solid rgba(255,255,255,.15);border-radius:10px;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:16px;font-weight:600}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--gold)}
+.form-group input::placeholder{color:rgba(255,255,255,.3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-actions{display:flex;gap:10px;margin-top:20px}.form-actions .btn{flex:1;justify-content:center}
+.modal textarea{width:100%;min-height:180px;padding:12px;border:2px solid rgba(255,255,255,.15);border-radius:10px;background:rgba(0,0,0,.3);color:#0f0;font-family:'Courier New',monospace;font-size:14px;resize:vertical}
+.modal textarea:focus{outline:none;border-color:var(--gold)}
+.slide-in{animation:slideIn .5s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes slideIn{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.card-enter{animation:cardEnter .4s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes cardEnter{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:999}
+.sidebar-divider{height:2px;background:linear-gradient(90deg,transparent,rgba(241,196,15,.4),transparent);margin:16px 12px}
+.cheats-section{padding:0 12px 24px}
+.cheats-header{text-align:center;font-weight:900;font-size:1rem;letter-spacing:3px;padding:8px 0 12px;background:linear-gradient(90deg,#f1c40f,#e67e22,#e74c3c,#9b59b6,#3498db,#2ecc71);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
+.cheat-btn{padding:12px 8px;border:none;border-radius:10px;font-family:inherit;font-size:.8rem;font-weight:800;cursor:pointer;transition:all .15s;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3);-webkit-user-select:none;user-select:none}
+.cheat-btn:active{transform:scale(.93)!important;opacity:.85}
+.cb-gold{background:linear-gradient(135deg,#f1c40f,#e67e22)}.cb-blue{background:linear-gradient(135deg,#3498db,#2980b9)}.cb-purple{background:linear-gradient(135deg,#9b59b6,#8e44ad)}.cb-green{background:linear-gradient(135deg,#2ecc71,#27ae60)}.cb-red{background:linear-gradient(135deg,#e74c3c,#c0392b)}.cb-teal{background:linear-gradient(135deg,#1abc9c,#16a085)}.cb-orange{background:linear-gradient(135deg,#e67e22,#d35400)}
+.cb-rainbow{background:linear-gradient(135deg,#f1c40f,#e74c3c,#9b59b6,#3498db);background-size:300% 300%;animation:rainbowShift 3s ease infinite}
+@keyframes rainbowShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.cb-cyan{background:linear-gradient(135deg,#00d2ff,#0077b6)}.cb-pink{background:linear-gradient(135deg,#e91e8c,#c2185b)}
+.cb-fire{background:linear-gradient(135deg,#ff6a00,#ee0979);background-size:200% 200%;animation:fireGlow 1.5s ease infinite}
+@keyframes fireGlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.cb-ice{background:linear-gradient(135deg,#74ebd5,#acb6e5)}
+.cb-wave{background:linear-gradient(135deg,#0052d4,#4364f7,#6fb1fc);background-size:200% 200%;animation:waveFlow 2s ease infinite}
+@keyframes waveFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.cb-swap{background:linear-gradient(135deg,#7f00ff,#e100ff)}.cb-star{background:linear-gradient(135deg,#f7971e,#ffd200);color:#1a1a2e}
+.cb-chaos{background:linear-gradient(135deg,#fc466b,#3f5efb,#2ecc71,#f1c40f);background-size:400% 400%;animation:rainbowShift 2s ease infinite}
+.cb-time{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);border:1px solid rgba(255,255,255,.3)}
+.cb-jackpot{background:linear-gradient(135deg,#f1c40f,#f39c12,#e67e22);position:relative;overflow:hidden}
+.cb-jackpot::after{content:'💰';position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:.9rem;animation:jackpotBounce 1s ease infinite}
+@keyframes jackpotBounce{0%,100%{transform:translateY(-50%) scale(1)}50%{transform:translateY(-50%) scale(1.3)}}
+.cb-nuke{background:linear-gradient(135deg,#000,#4a0000,#ff0000);background-size:300% 300%;animation:nukeGlow 1.5s ease infinite;border:1px solid #ff0000;text-shadow:0 0 8px #ff0000}
+@keyframes nukeGlow{0%,100%{background-position:0% 50%;box-shadow:0 0 8px rgba(255,0,0,.3)}50%{background-position:100% 50%;box-shadow:0 0 20px rgba(255,0,0,.6)}}
+.cheat-builder,.cheat-giver{background:rgba(255,255,255,.04);border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid rgba(255,255,255,.08)}
+.builder-title{font-weight:800;font-size:.85rem;margin-bottom:10px;opacity:.9}
+.builder-name-row{display:flex;gap:6px;margin-bottom:8px}
+.builder-name-row input{flex:1;padding:8px 10px;border:2px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:16px;font-weight:700}
+.builder-name-row input:focus{outline:none;border-color:var(--gold)}
+.dice-btn{width:40px;height:40px;border-radius:8px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:1.1rem;cursor:pointer;flex-shrink:0}
+.builder-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.builder-stats label{font-size:.7rem;font-weight:700;opacity:.7;display:flex;flex-direction:column;gap:3px}
+.builder-stats input{padding:8px;border:2px solid rgba(255,255,255,.12);border-radius:6px;background:rgba(255,255,255,.05);color:#f1c40f;font-family:inherit;font-size:16px;font-weight:800;width:100%}
+.builder-stats input:focus{outline:none;border-color:var(--gold)}
+.builder-go{width:100%}
+.deck-mgr-tabs{display:flex;gap:4px;margin-bottom:10px}
+.dm-tab{flex:1;padding:10px;border:2px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:rgba(255,255,255,.5);font-family:inherit;font-size:.78rem;font-weight:800;cursor:pointer}
+.dm-tab.active{background:var(--gold);color:#1a1a2e;border-color:var(--gold)}
+.dm-hint{font-size:.75rem;opacity:.5;font-weight:600;margin-bottom:8px;text-align:center;padding:4px}
+.dm-group{margin-bottom:8px}
+.dm-group-head{padding:5px 10px;border-radius:8px 8px 0 0;font-size:.7rem;font-weight:800;color:#fff;letter-spacing:1px}
+.dm-cards{display:flex;flex-wrap:wrap;gap:4px;padding:6px;background:rgba(255,255,255,.03);border-radius:0 0 8px 8px;border:1px solid rgba(255,255,255,.06);border-top:none}
+.dm-card{display:flex;align-items:center;gap:5px;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.04);cursor:pointer;font-family:inherit;color:#fff;font-size:.7rem;font-weight:600;text-align:left;width:100%}
+.dm-card:active{background:rgba(46,204,113,.15);transform:scale(.98)}
+.dm-badge{padding:1px 5px;border-radius:4px;font-size:.6rem;font-weight:800;color:#fff;flex-shrink:0}
+.dm-emoji{font-size:.9rem;flex-shrink:0}
+.dm-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dm-mini-stats{font-size:.6rem;opacity:.4;flex-shrink:0}
+.dm-my-list{display:flex;flex-direction:column;gap:3px;max-height:300px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.dm-my-row{display:flex;align-items:center;gap:6px;padding:8px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:.73rem;font-weight:600}
+.dm-my-row.dm-my-top{border-color:rgba(241,196,15,.4);background:rgba(241,196,15,.08)}
+.dm-emoji-sm{font-size:.85rem;flex-shrink:0}
+.dm-my-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dm-my-stats{font-size:.6rem;opacity:.4;flex-shrink:0}
+.dm-opp-select{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.dm-opp-btn{padding:8px 12px;border-radius:8px;border:2px solid rgba(255,255,255,.12);background:transparent;color:#fff;font-family:inherit;font-size:.75rem;font-weight:700;cursor:pointer}
+.dm-opp-btn.active{border-color:var(--c,#fff);background:rgba(255,255,255,.1)}
+.dm-card-opp:active{background:rgba(241,196,15,.15)}
+.dm-action{width:28px;height:28px;border-radius:6px;border:none;font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dm-up{background:rgba(52,152,219,.2);color:#3498db}
+.dm-del{background:rgba(231,76,60,.15);color:#e74c3c}
+.xray-full{width:100%;margin-bottom:6px}
+.cb-xray{background:linear-gradient(135deg,#00d2ff,#3a7bd5);position:relative;overflow:hidden}
+.cb-xray::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 40%,rgba(255,255,255,.25) 50%,transparent 60%);animation:xraySweep 2s linear infinite}
+@keyframes xraySweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.cb-xray.xray-active{background:linear-gradient(135deg,#e74c3c,#c0392b);animation:none}
+.cb-xray.xray-active::after{display:none}
+.cheat-top-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px}
+.xray-panel{display:none;width:100%;max-width:900px;margin-top:16px}
+.xray-panel.active{display:block;animation:slideIn .4s ease}
+.xray-group{background:rgba(0,210,255,.06);border:1px solid rgba(0,210,255,.2);border-radius:14px;padding:12px 14px;margin-bottom:10px;position:relative;overflow:hidden}
+.xray-group::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 40%,rgba(0,210,255,.06) 50%,transparent 60%);animation:xraySweep 3s linear infinite;pointer-events:none}
+.xray-group-title{font-weight:800;font-size:.85rem;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase}
+.xray-list{display:flex;flex-wrap:wrap;gap:5px}
+.xray-item{background:rgba(255,255,255,.05);padding:6px 10px;border-radius:8px;font-size:.75rem;font-weight:600;display:flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.xray-item.xray-top{border-color:rgba(231,76,60,.5);background:rgba(231,76,60,.1)}
+.xray-item.xray-own{border-color:rgba(46,204,113,.3);background:rgba(46,204,113,.06)}
+.xray-badge{padding:2px 6px;border-radius:4px;font-size:.6rem;font-weight:800;color:#fff;flex-shrink:0}
+.xray-stats{font-size:.6rem;opacity:.5;margin-left:auto;white-space:nowrap}
+#toast-container{position:fixed;bottom:max(24px,var(--safe-b));left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{background:rgba(10,10,30,.9);backdrop-filter:blur(12px);color:#fff;padding:14px 28px;border-radius:14px;font-weight:700;font-size:.95rem;border:2px solid var(--gold);box-shadow:0 8px 32px rgba(241,196,15,.2);animation:toastIn .35s cubic-bezier(.175,.885,.32,1.275);pointer-events:auto;white-space:nowrap}
+.toast.toast-out{animation:toastOut .35s ease forwards}
+@keyframes toastIn{from{transform:translateY(24px) scale(.9);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes toastOut{to{transform:translateY(24px) scale(.9);opacity:0}}
+.peek-player{margin-bottom:16px}.peek-player h4{margin-bottom:8px;font-size:.95rem}
+.peek-cards{display:flex;flex-wrap:wrap;gap:6px}
+.peek-card{background:rgba(255,255,255,.06);padding:8px 12px;border-radius:8px;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.1)}
+.peek-badge{padding:2px 6px;border-radius:4px;font-size:.65rem;font-weight:800;color:#fff;flex-shrink:0}
+.peek-stats{font-size:.65rem;opacity:.5;margin-left:4px}
+.giver-row{display:flex;gap:6px}
+.giver-row select{flex:1;padding:8px 10px;border:2px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.08);color:#fff;font-family:inherit;font-size:16px;font-weight:600}
+.giver-row select:focus{outline:none;border-color:var(--gold)}
+.giver-row .cheat-btn{padding:8px 14px;flex-shrink:0}
+@media(max-width:720px){:root{--card-w:270px;--card-h:420px}.card.small{width:150px;min-height:240px}.game-area{gap:16px}.btn{padding:12px 28px;font-size:1rem}.player-bar{gap:6px}.player-chip{padding:6px 12px;font-size:.8rem}}
+@media(max-width:480px){:root{--card-w:100%;--card-h:auto}.card{width:100%;min-height:auto}.card.small{width:100%;min-height:auto}.card-front{position:relative}.card-back{display:none}.card.flipped{transform:none}.game-area{flex-direction:column;align-items:stretch}.opponents-area{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<canvas id="confetti-canvas"></canvas>
+<div id="admin-backdrop" class="admin-backdrop" onclick="Admin.close()"></div>
+<aside id="admin-sidebar" class="admin-sidebar">
+<div class="sidebar-header"><h2>⚙️ Kartenverwaltung</h2><button class="sidebar-close" onclick="Admin.close()">✕</button></div>
+<div class="sidebar-actions">
+<button class="btn btn-success btn-xs" onclick="Admin.openAdd()">➕ Neu</button>
+<button class="btn btn-secondary btn-xs" onclick="Admin.openExport()">📤</button>
+<button class="btn btn-secondary btn-xs" onclick="Admin.openImport()">📥</button>
+<button class="btn btn-danger btn-xs" onclick="Admin.resetData()">🔄</button>
+</div>
+<div class="sidebar-scroll">
+<div class="sidebar-count" id="sidebar-count"></div>
+<div class="sidebar-cards" id="sidebar-cards"></div>
+<div class="sidebar-divider"></div>
+<div class="cheats-section">
+<div class="cheats-header">🎮 CHEATS</div>
+<div class="cheat-grid">
+<button class="cheat-btn cb-gold" onclick="Game.cheatMegaJet()">🚀 Mega Jet!</button>
+<button class="cheat-btn cb-blue" onclick="Game.cheatBoost()">⬆️ x10 Power</button>
+<button class="cheat-btn cb-nuke" onclick="Game.cheatTrillion()">💀 x1 Billiarde</button>
+<button class="cheat-btn cb-purple" onclick="Game.cheatSteal(5)">🃏 5 Karten klauen</button>
+<button class="cheat-btn cb-green" onclick="Game.cheatBestOnTop()">🔀 Beste oben</button>
+<button class="cheat-btn cb-red" onclick="Game.cheatWeaken()">💣 Gegner schwächen</button>
+<button class="cheat-btn cb-teal" onclick="Game.cheatPeek()">👀 Spicken</button>
+<button id="xray-toggle" class="cheat-btn cb-xray" onclick="Game.cheatXray()">🔬 X-Ray AN</button>
+<button class="cheat-btn cb-orange" onclick="Game.cheatRandomEvent()">🎲 Zufalls-Event</button>
+<button class="cheat-btn cb-rainbow" onclick="Game.cheatWin()">🏆 Sofort gewinnen</button>
+</div>
+<div class="cheat-builder" style="margin-top:8px"><div class="builder-title">💀 MEGA CHEATS</div><div class="cheat-grid">
+<button class="cheat-btn cb-cyan" onclick="Game.cheatMagnet()">🧲 Magnet</button>
+<button class="cheat-btn cb-pink" onclick="Game.cheatCloneArmy()">🎭 5x Klonen</button>
+<button class="cheat-btn cb-fire" onclick="Game.cheatFusion()">💫 Fusion</button>
+<button class="cheat-btn cb-ice" onclick="Game.cheatFreeze()">🧊 Einfrieren</button>
+<button class="cheat-btn cb-wave" onclick="Game.cheatTsunami()">🌊 Tsunami</button>
+<button class="cheat-btn cb-swap" onclick="Game.cheatSwapDeck()">🌀 Deck tauschen</button>
+<button class="cheat-btn cb-star" onclick="Game.cheatJoker()">🃏 Joker Supreme</button>
+<button class="cheat-btn cb-chaos" onclick="Game.cheatShuffleChaos()">🎪 Shuffle Chaos</button>
+<button class="cheat-btn cb-time" onclick="Game.cheatTimewarp()">🔮 Zeitreise</button>
+<button class="cheat-btn cb-jackpot" onclick="Game.cheatJackpot()">🎰 JACKPOT</button>
+</div></div>
+<div class="cheat-builder" style="margin-top:8px"><div class="builder-title">🏅 Top-Karten</div>
+<div class="cheat-top-row">
+<button class="cheat-btn cb-gold" onclick="Game.cheatTopCards(5)">🏅 Top 5</button>
+<button class="cheat-btn cb-gold" onclick="Game.cheatTopCards(7)">🏅 Top 7</button>
+<button class="cheat-btn cb-gold" onclick="Game.cheatTopCards(10)">🏅 Top 10</button>
+</div>
+<button class="cheat-btn cb-rainbow xray-full" onclick="Game.cheatAllAces()">🥇 Alle Gruppen-Asse</button>
+<button class="cheat-btn cb-purple xray-full" onclick="Game.cheatGrabPile()">📥 Stapel ziehen</button>
+<button class="cheat-btn cb-rainbow xray-full" onclick="Game.cheatGiveAll()">🗃️ ALLE Karten geben</button>
+</div>
+<div class="cheat-builder"><div class="builder-title">🛠️ Mega Jet Builder</div>
+<div class="builder-name-row"><input type="text" id="mj-name" value="Turbo-Blitz 9000" placeholder="Name…"><button class="dice-btn" onclick="Game.cheatRandomName()">🎲</button></div>
+<div class="builder-stats">
+<label>⚡ Speed<input type="number" id="mj-speed" value="99999"></label>
+<label>📏 Range<input type="number" id="mj-range" value="999999"></label>
+<label>↔️ Spannw.<input type="number" id="mj-wingspan" value="999"></label>
+<label>📐 Länge<input type="number" id="mj-length" value="500"></label>
+<label>⬆️ Höhe<input type="number" id="mj-altitude" value="100000"></label>
+<label>📅 Jahr<input type="number" id="mj-year" value="2099"></label>
+</div>
+<button class="cheat-btn cb-gold builder-go" onclick="Game.cheatCustomJet()">🚀 Erstellen!</button>
+</div>
+<div class="cheat-builder"><div class="builder-title">🃏 Deck Manager</div>
+<div class="deck-mgr-tabs">
+<button class="dm-tab active" onclick="Game.deckMgrTab('add')">➕ Hinzufügen</button>
+<button class="dm-tab" onclick="Game.deckMgrTab('my')">🗂️ Mein Deck</button>
+<button class="dm-tab" onclick="Game.deckMgrTab('give-opp')">🎁 Gegner</button>
+</div>
+<div id="deck-mgr-content"></div>
+</div>
+</div>
+</div>
+</aside>
+<button class="admin-gear" onclick="Admin.toggle()" title="Kartenverwaltung">⚙️</button>
+<div class="container">
+<div id="start-screen" class="screen active">
+<span class="title-plane">✈️</span>
+<h1 class="game-title">Flugzeug<br><span class="accent">Quartett</span></h1>
+<p class="subtitle">Wähle die beste Eigenschaft und besiege deine Gegner!</p>
+<div class="start-links"><button class="btn btn-primary" onclick="Game.showScreen('setup')">✈️ Spiel starten</button></div>
+</div>
+<div id="setup-screen" class="screen">
+<h1 class="setup-title">🎮 Spieler einrichten</h1>
+<p class="setup-sub">Füge Spieler hinzu und wähle Mensch oder Computer</p>
+<div class="players-config" id="players-config"></div>
+<div class="setup-btns"><button class="btn btn-secondary btn-sm" id="add-player-btn" onclick="Game.addPlayer()">➕ Spieler hinzufügen</button></div>
+<div class="setup-start">
+<button class="btn btn-secondary btn-sm" onclick="Game.showScreen('start')">← Zurück</button>
+<button class="btn btn-primary" onclick="Game.start()" id="start-game-btn">🚀 Spiel starten</button>
+</div>
+<div class="setup-card-info" id="setup-card-info"></div>
+</div>
+<div id="game-screen" class="screen">
+<div class="player-bar" id="player-bar"></div>
+<div class="message-bar" id="message-bar"></div>
+<div class="game-area">
+<div class="active-card-area"><div class="active-label" id="active-label">Deine Karte</div><div class="card" id="active-card"></div></div>
+<div class="opponents-area" id="opponents-area"></div>
+</div>
+<div class="xray-panel" id="xray-panel"></div>
+</div>
+<div id="end-screen" class="screen">
+<div class="end-icon" id="end-icon">🏆</div>
+<h1 class="end-title" id="end-title">Gewonnen!</h1>
+<p class="end-text" id="end-text"></p>
+<div class="start-links">
+<button class="btn btn-primary" onclick="Game.showScreen('setup')">🔄 Nochmal spielen</button>
+<button class="btn btn-secondary" onclick="Game.showScreen('start')">🏠 Hauptmenü</button>
+</div>
+</div>
+</div>
+<div class="result-overlay" id="result-overlay"><div class="result-box">
+<div class="result-icon" id="result-icon">✅</div>
+<h2 class="result-title" id="result-title"></h2>
+<div class="result-compare" id="result-compare"></div>
+<p class="result-text" id="result-text"></p>
+<button class="btn btn-primary btn-sm" onclick="Game.nextRound()">Weiter ➜</button>
+</div></div>
+<div class="modal-overlay" id="edit-modal"><div class="modal">
+<h2 id="modal-title">✈️ Flugzeug hinzufügen</h2>
+<form id="aircraft-form" onsubmit="Admin.save(event)">
+<input type="hidden" id="form-id">
+<div class="form-row"><div class="form-group"><label>Name</label><input type="text" id="form-name" required></div><div class="form-group"><label>Emoji</label><input type="text" id="form-emoji" maxlength="4"></div></div>
+<div class="form-row"><div class="form-group"><label>Gruppe (A–Z)</label><input type="text" id="form-group" maxlength="1" required style="text-transform:uppercase"></div><div class="form-group"><label>Nummer</label><input type="number" id="form-number" min="1" max="99" required></div></div>
+<div class="form-row"><div class="form-group"><label>Kategorie</label><input type="text" id="form-category"></div><div class="form-group"><label>Wikipedia-Artikel</label><input type="text" id="form-wiki" placeholder="z.B. Boeing_747"></div></div>
+<hr style="border-color:rgba(255,255,255,.1);margin:16px 0">
+<div class="form-row"><div class="form-group"><label>⚡ Geschwindigkeit</label><input type="number" id="form-speed" step="any" required></div><div class="form-group"><label>📏 Reichweite</label><input type="number" id="form-range" step="any" required></div></div>
+<div class="form-row"><div class="form-group"><label>↔️ Spannweite</label><input type="number" id="form-wingspan" step="any" required></div><div class="form-group"><label>📐 Länge</label><input type="number" id="form-length" step="any" required></div></div>
+<div class="form-row"><div class="form-group"><label>⬆️ Max. Flughöhe</label><input type="number" id="form-altitude" step="any" required></div><div class="form-group"><label>📅 Erstflug</label><input type="number" id="form-firstFlight" min="1900" max="2030" required></div></div>
+<div class="form-actions"><button type="button" class="btn btn-secondary btn-sm" onclick="Admin.closeEdit()">Abbrechen</button><button type="submit" class="btn btn-primary btn-sm">💾 Speichern</button></div>
+</form></div></div>
+<div class="modal-overlay" id="export-modal"><div class="modal"><h2>📤 Exportieren</h2><textarea id="export-data" readonly></textarea><div class="form-actions"><button class="btn btn-secondary btn-sm" onclick="Admin.closeExport()">Schließen</button><button class="btn btn-primary btn-sm" onclick="Admin.copyExport()">📋 Kopieren</button></div></div></div>
+<div class="modal-overlay" id="import-modal"><div class="modal"><h2>📥 Importieren</h2><textarea id="import-data" placeholder="JSON einfügen…"></textarea><div class="form-actions"><button class="btn btn-secondary btn-sm" onclick="Admin.closeImport()">Abbrechen</button><button class="btn btn-primary btn-sm" onclick="Admin.doImport()">📥 Import</button></div></div></div>
+<div class="modal-overlay" id="peek-modal"><div class="modal" style="max-width:640px"><h2>👀 Gegner-Karten</h2><div id="peek-content"></div><div class="form-actions" style="margin-top:16px"><button class="btn btn-primary btn-sm" onclick="document.getElementById('peek-modal').classList.remove('active')">Schließen</button></div></div></div>
+<div id="toast-container"></div>
+<script>
+// ═══ DATA ═══
+const DEFAULT_AIRCRAFT=[{id:'a1',group:'A',number:1,name:'F-22 Raptor',category:'Kampfjets',emoji:'🦅',wikiTitle:'Lockheed_Martin_F-22_Raptor',stats:{speed:2414,range:2960,wingspan:13.56,length:18.92,altitude:19812,firstFlight:1997}},{id:'a2',group:'A',number:2,name:'Eurofighter Typhoon',category:'Kampfjets',emoji:'⚡',wikiTitle:'Eurofighter_Typhoon',stats:{speed:2495,range:2900,wingspan:10.95,length:15.96,altitude:19810,firstFlight:1994}},{id:'a3',group:'A',number:3,name:'F-35 Lightning II',category:'Kampfjets',emoji:'🌩️',wikiTitle:'Lockheed_Martin_F-35_Lightning_II',stats:{speed:1975,range:2220,wingspan:10.67,length:15.67,altitude:15240,firstFlight:2006}},{id:'a4',group:'A',number:4,name:'Dassault Rafale',category:'Kampfjets',emoji:'🇫🇷',wikiTitle:'Dassault_Rafale',stats:{speed:1912,range:3700,wingspan:10.80,length:15.27,altitude:15235,firstFlight:1986}},{id:'b1',group:'B',number:1,name:'Boeing 747',category:'Passagierflugzeuge',emoji:'👑',wikiTitle:'Boeing_747',stats:{speed:988,range:13450,wingspan:64.40,length:70.70,altitude:13747,firstFlight:1969}},{id:'b2',group:'B',number:2,name:'Airbus A380',category:'Passagierflugzeuge',emoji:'🐋',wikiTitle:'Airbus_A380',stats:{speed:1020,range:15200,wingspan:79.75,length:72.70,altitude:13136,firstFlight:2005}},{id:'b3',group:'B',number:3,name:'Concorde',category:'Passagierflugzeuge',emoji:'🔺',wikiTitle:'Concorde',stats:{speed:2179,range:7223,wingspan:25.60,length:61.66,altitude:18300,firstFlight:1969}},{id:'b4',group:'B',number:4,name:'Boeing 787 Dreamliner',category:'Passagierflugzeuge',emoji:'💫',wikiTitle:'Boeing_787_Dreamliner',stats:{speed:954,range:14140,wingspan:60.10,length:56.70,altitude:13100,firstFlight:2009}},{id:'c1',group:'C',number:1,name:'C-130 Hercules',category:'Transportflugzeuge',emoji:'💪',wikiTitle:'Lockheed_C-130_Hercules',stats:{speed:592,range:3800,wingspan:40.40,length:29.80,altitude:10060,firstFlight:1954}},{id:'c2',group:'C',number:2,name:'Antonov An-225',category:'Transportflugzeuge',emoji:'🏋️',wikiTitle:'Antonov_An-225_Mriya',stats:{speed:850,range:15400,wingspan:88.40,length:84.00,altitude:12000,firstFlight:1988}},{id:'c3',group:'C',number:3,name:'Airbus A400M',category:'Transportflugzeuge',emoji:'📦',wikiTitle:'Airbus_A400M_Atlas',stats:{speed:780,range:8700,wingspan:42.40,length:45.10,altitude:11300,firstFlight:2009}},{id:'c4',group:'C',number:4,name:'C-17 Globemaster III',category:'Transportflugzeuge',emoji:'🌍',wikiTitle:'Boeing_C-17_Globemaster_III',stats:{speed:830,range:4482,wingspan:51.75,length:53.00,altitude:13716,firstFlight:1991}},{id:'d1',group:'D',number:1,name:'Cessna 172',category:'Leichtflugzeuge',emoji:'🛩️',wikiTitle:'Cessna_172',stats:{speed:302,range:1289,wingspan:11.00,length:8.28,altitude:4100,firstFlight:1955}},{id:'d2',group:'D',number:2,name:'Piper PA-28 Cherokee',category:'Leichtflugzeuge',emoji:'🪶',wikiTitle:'Piper_PA-28_Cherokee',stats:{speed:237,range:1530,wingspan:10.67,length:7.16,altitude:4206,firstFlight:1960}},{id:'d3',group:'D',number:3,name:'Beechcraft King Air',category:'Leichtflugzeuge',emoji:'👔',wikiTitle:'Beechcraft_King_Air',stats:{speed:578,range:3338,wingspan:17.65,length:14.22,altitude:10668,firstFlight:1963}},{id:'d4',group:'D',number:4,name:'Diamond DA42',category:'Leichtflugzeuge',emoji:'💎',wikiTitle:'Diamond_DA42',stats:{speed:338,range:1693,wingspan:13.56,length:8.56,altitude:5486,firstFlight:2002}},{id:'e1',group:'E',number:1,name:'B-2 Spirit',category:'Bomber',emoji:'👻',wikiTitle:'Northrop_Grumman_B-2_Spirit',stats:{speed:1010,range:11100,wingspan:52.43,length:21.03,altitude:15200,firstFlight:1989}},{id:'e2',group:'E',number:2,name:'B-52 Stratofortress',category:'Bomber',emoji:'🏰',wikiTitle:'Boeing_B-52_Stratofortress',stats:{speed:1047,range:16232,wingspan:56.39,length:48.50,altitude:15166,firstFlight:1952}},{id:'e3',group:'E',number:3,name:'Avro Lancaster',category:'Bomber',emoji:'🇬🇧',wikiTitle:'Avro_Lancaster',stats:{speed:462,range:4073,wingspan:31.09,length:21.18,altitude:7468,firstFlight:1941}},{id:'e4',group:'E',number:4,name:'Tu-160 Blackjack',category:'Bomber',emoji:'🃏',wikiTitle:'Tupolev_Tu-160',stats:{speed:2220,range:12300,wingspan:55.70,length:54.10,altitude:15600,firstFlight:1981}},{id:'f1',group:'F',number:1,name:'AH-64 Apache',category:'Hubschrauber',emoji:'🪖',wikiTitle:'Boeing_AH-64_Apache',stats:{speed:293,range:476,wingspan:14.63,length:17.73,altitude:6400,firstFlight:1975}},{id:'f2',group:'F',number:2,name:'CH-47 Chinook',category:'Hubschrauber',emoji:'🪢',wikiTitle:'Boeing_CH-47_Chinook',stats:{speed:315,range:741,wingspan:18.29,length:30.10,altitude:6096,firstFlight:1961}},{id:'f3',group:'F',number:3,name:'Airbus H145',category:'Hubschrauber',emoji:'🚑',wikiTitle:'Airbus_Helicopters_H145',stats:{speed:259,range:680,wingspan:11.00,length:13.64,altitude:5486,firstFlight:2014}},{id:'f4',group:'F',number:4,name:'Mi-26',category:'Hubschrauber',emoji:'🦣',wikiTitle:'Mil_Mi-26',stats:{speed:295,range:800,wingspan:32.00,length:40.03,altitude:4600,firstFlight:1977}}];
+const STAT_META={speed:{label:'Geschwindigkeit',unit:'km/h',icon:'⚡'},range:{label:'Reichweite',unit:'km',icon:'📏'},wingspan:{label:'Spannweite',unit:'m',icon:'↔️'},length:{label:'Länge',unit:'m',icon:'📐'},altitude:{label:'Max. Flughöhe',unit:'m',icon:'⬆️'},firstFlight:{label:'Erstflug',unit:'',icon:'📅'}};
+const GROUP_COLORS={A:{bg:'#e74c3c',light:'#fadbd8',name:'Kampfjets'},B:{bg:'#3498db',light:'#d4e6f1',name:'Passagierflugzeuge'},C:{bg:'#27ae60',light:'#d5f5e3',name:'Transportflugzeuge'},D:{bg:'#f39c12',light:'#fdebd0',name:'Leichtflugzeuge'},E:{bg:'#8e44ad',light:'#e8daef',name:'Bomber'},F:{bg:'#16a085',light:'#d1f2eb',name:'Hubschrauber'},X:{bg:'#f1c40f',light:'#fef9e7',name:'⚡ MEGA JET'}};
+const PLAYER_COLORS=['#3498db','#e74c3c','#2ecc71','#f39c12','#9b59b6','#1abc9c'];
+const PLAYER_ICONS=['🧑','🤖','👩','👨','👧','🧒'];
+const FlugzeugData={getAll(){const s=localStorage.getItem('flugzeug_quartett_data');if(s){try{return JSON.parse(s)}catch(e){}}this.saveAll(DEFAULT_AIRCRAFT);return[...DEFAULT_AIRCRAFT]},saveAll(a){localStorage.setItem('flugzeug_quartett_data',JSON.stringify(a))},getById(id){return this.getAll().find(a=>a.id===id)},add(a){const all=this.getAll();all.push(a);this.saveAll(all)},update(id,u){const a=this.getAll();const i=a.findIndex(x=>x.id===id);if(i!==-1){a[i]={...a[i],...u};this.saveAll(a)}},remove(id){this.saveAll(this.getAll().filter(a=>a.id!==id))},resetToDefault(){this.saveAll(DEFAULT_AIRCRAFT);ImageCache.clear();ImageCache.fetchAll()},exportJSON(){return JSON.stringify(this.getAll(),null,2)},importJSON(j){const d=JSON.parse(j);if(!Array.isArray(d))throw new Error('Ungültig');d.forEach(a=>{if(!a.id||!a.name||!a.group||!a.stats)throw new Error('Unvollständig')});this.saveAll(d)}};
+const ImageCache={_cache:null,_load(){if(this._cache)return this._cache;try{this._cache=JSON.parse(localStorage.getItem('flugzeug_img_cache')||'{}')}catch(e){this._cache={}}return this._cache},_save(){localStorage.setItem('flugzeug_img_cache',JSON.stringify(this._cache))},get(id){return this._load()[id]||null},set(id,url){this._load();this._cache[id]=url;this._save()},clear(){this._cache={};localStorage.removeItem('flugzeug_img_cache')},async fetchOne(a){if(this.get(a.id))return this.get(a.id);if(!a.wikiTitle)return null;try{const r=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(a.wikiTitle)}`);if(!r.ok)return null;const d=await r.json();const url=d.thumbnail?.source||d.originalimage?.source||null;if(url)this.set(a.id,url);return url}catch(e){return null}},async fetchAll(){await Promise.allSettled(FlugzeugData.getAll().map(a=>this.fetchOne(a)));document.dispatchEvent(new CustomEvent('images-loaded'))}};
+</script>
+<script>
+// ═══ GAME ═══
+</script>
+<script>
+const Game=(()=>{let players=[],currentIdx=0,pile=[],phase='setup',revealedStat=null,xrayOn=false;const defaultPlayers=[{name:'Spieler 1',type:'human'},{name:'Computer',type:'ai'}];let setupPlayers=[...defaultPlayers];const $=id=>document.getElementById(id),shuffle=arr=>{const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a},fmt=(k,v)=>k==='firstFlight'?v:v.toLocaleString('de-DE'),activePlayers=()=>players.filter(p=>p.deck.length>0);function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id+'-screen').classList.add('active');if(id==='setup')renderSetup()}function renderSetup(){const el=$('players-config'),tc=FlugzeugData.getAll().length;el.innerHTML=setupPlayers.map((p,i)=>`<div class="player-setup-row slide-in" style="animation-delay:${i*80}ms"><div class="player-color" style="background:${PLAYER_COLORS[i]}"></div><input type="text" value="${p.name}" placeholder="Name…" onchange="Game.setPlayerName(${i},this.value)"><div class="type-toggle"><button type="button" class="${p.type==='human'?'active':''}" onclick="Game.setPlayerType(${i},'human')">🧑 Mensch</button><button type="button" class="${p.type==='ai'?'active':''}" onclick="Game.setPlayerType(${i},'ai')">🤖 KI</button></div>${setupPlayers.length>2?`<button class="player-remove" onclick="Game.removePlayer(${i})">✕</button>`:''}</div>`).join('');$('add-player-btn').style.display=setupPlayers.length>=6?'none':'';$('setup-card-info').textContent=`${tc} Karten • ${Math.floor(tc/setupPlayers.length)} pro Spieler`;$('start-game-btn').disabled=setupPlayers.length<2}function addPlayer(){if(setupPlayers.length>=6)return;setupPlayers.push({name:`Spieler ${setupPlayers.length+1}`,type:'human'});renderSetup()}function removePlayer(i){if(setupPlayers.length<=2)return;setupPlayers.splice(i,1);renderSetup()}function setPlayerName(i,n){setupPlayers[i].name=n.trim()||`Spieler ${i+1}`}function setPlayerType(i,t){setupPlayers[i].type=t;renderSetup()}function start(){const ac=FlugzeugData.getAll();if(ac.length<setupPlayers.length*2){alert('Zu wenige Karten!');return}const sh=shuffle(ac);players=setupPlayers.map((p,i)=>({...p,idx:i,color:PLAYER_COLORS[i],icon:p.type==='ai'?'🤖':PLAYER_ICONS[i]||'🧑',deck:[]}));let ci=0;sh.forEach(c=>{players[ci%players.length].deck.push(c);ci++});currentIdx=0;pile=[];phase='playing';revealedStat=null;showScreen('game');renderGame();ImageCache.fetchAll()}function renderGame(){renderPlayerBar();renderActiveCard();renderOpponents();renderXrayPanel();updateMessage();if(phase==='playing'&&current().type==='ai')setTimeout(aiTurn,1000+Math.random()*800)}function current(){return players[currentIdx]}function renderPlayerBar(){$('player-bar').innerHTML=players.map((p,i)=>{const cls=['player-chip',i===currentIdx&&phase!=='ended'?'active-turn':'',p.deck.length===0?'eliminated':''].filter(Boolean).join(' ');return`<div class="${cls}"><span class="chip-dot" style="background:${p.color}"></span>${p.icon} ${p.name}<span class="chip-count">${p.deck.length}</span></div>`}).join('')}function renderActiveCard(){const p=current();$('active-label').innerHTML=`<span style="color:${p.color}">${p.icon} ${p.name}</span>`;if(!p.deck.length){$('active-card').innerHTML='';return}const card=p.deck[0],ic=p.type==='human'&&phase==='playing';$('active-card').innerHTML=`<div class="card-front card-enter">${renderCardFrontHTML(card,ic)}</div>`;$('active-card').classList.remove('flipped')}function renderOpponents(){const opps=players.filter((_,i)=>i!==currentIdx);$('opponents-area').innerHTML=opps.map(p=>{if(p.deck.length===0)return`<div class="opponent-slot" style="opacity:.3"><span class="opp-label"><span class="opp-dot" style="background:${p.color}"></span>${p.icon} ${p.name} – raus!</span></div>`;const card=p.deck[0],sf=xrayOn||(phase==='comparing'&&revealedStat);return`<div class="opponent-slot"><span class="opp-label"><span class="opp-dot" style="background:${p.color}"></span>${p.icon} ${p.name} (${p.deck.length})</span><div class="card small ${sf?'':'flipped'}"><div class="card-front">${renderCardFrontHTML(card,false)}</div><div class="card-back"><div class="card-back-pattern"><span class="back-icon">✈️</span><span class="back-text">Quartett</span></div></div></div></div>`}).join('')}function renderCardFrontHTML(card,clickable){const gc=GROUP_COLORS[card.group]||{bg:'#555'};const imgUrl=ImageCache.get(card.id);const imgHtml=imgUrl?`<div class="card-image"><img src="${imgUrl}" alt="${card.name}" onerror="this.parentNode.innerHTML='<span class=card-emoji>${card.emoji||'✈️'}</span>'"></div>`:`<div class="card-image"><span class="card-emoji">${card.emoji||'✈️'}</span></div>`;const rows=Object.keys(STAT_META).map(key=>{const meta=STAT_META[key],val=card.stats[key],cls=[clickable?'clickable':'',revealedStat===key?'selected-stat':''].filter(Boolean).join(' '),oc=clickable?`onclick="Game.selectStat('${key}')"`:'';return`<tr class="${cls}" data-stat="${key}" ${oc}><td>${meta.icon} ${meta.label}</td><td>${fmt(key,val)}${meta.unit?' '+meta.unit:''}</td></tr>`}).join('');return`<div class="card-header" style="background:${gc.bg}"><span class="card-group-badge">${card.group}${card.number}</span><span class="card-category">${card.category||''}</span></div>${imgHtml}<div class="card-name">${card.name}</div><div class="card-stats"><table>${rows}</table></div>`}function updateMessage(){const p=current();if(phase==='playing')$('message-bar').innerHTML=p.type==='human'?`⬅️ <strong>${p.name}</strong>, wähle eine Eigenschaft!`:`🤖 <strong>${p.name}</strong> denkt nach…`}function selectStat(key){if(phase!=='playing'||current().type!=='human')return;doCompare(key)}function aiTurn(){if(phase!=='playing'||current().type==='human')return;const card=current().deck[0];if(!card)return;const sks=Object.keys(STAT_META),all=FlugzeugData.getAll();let best=sks[0],bn=-1;sks.forEach(k=>{const mx=Math.max(...all.map(a=>a.stats[k]||0)),n=mx>0?card.stats[k]/mx:0;if(n>bn){bn=n;best=k}});doCompare(best)}function doCompare(sk){phase='comparing';revealedStat=sk;renderActiveCard();renderOpponents();highlightCards(sk);const active=activePlayers(),entries=active.map(p=>({player:p,card:p.deck[0],value:p.deck[0].stats[sk]})),mx=Math.max(...entries.map(e=>e.value)),winners=entries.filter(e=>e.value===mx);setTimeout(()=>{if(winners.length===1){const w=winners[0].player,wc=[];active.forEach(p=>wc.push(p.deck.shift()));wc.push(...pile);pile=[];w.deck.push(...wc);currentIdx=w.idx;showResultOverlay(sk,entries,w,wc.length)}else{active.forEach(p=>pile.push(p.deck.shift()));showResultOverlay(sk,entries,null,0)}},700)}function highlightCards(sk){document.querySelectorAll('tr[data-stat]').forEach(tr=>{tr.classList.remove('highlight-win','highlight-lose','highlight-tie','selected-stat','clickable');tr.removeAttribute('onclick')});document.querySelectorAll(`tr[data-stat="${sk}"]`).forEach(tr=>tr.classList.add('selected-stat'))}function showResultOverlay(sk,entries,winner,wc){const meta=STAT_META[sk],tie=!winner;$('result-icon').textContent=tie?'🤝':'🎉';$('result-title').textContent=tie?'Unentschieden!':`${winner.icon} ${winner.name} gewinnt!`;const sorted=[...entries].sort((a,b)=>b.value-a.value);let h=`<div class="result-stat-label">${meta.icon} ${meta.label}</div>`;sorted.forEach(e=>{const w=winner&&e.player.idx===winner.idx;h+=`<div class="result-row ${w?'winner':''}"><span class="rr-dot" style="background:${e.player.color}"></span><span class="rr-name">${e.player.icon} ${e.player.name}</span><span class="rr-aircraft">${e.card.name}</span><span class="rr-value">${fmt(sk,e.value)}${meta.unit?' '+meta.unit:''}</span></div>`});$('result-compare').innerHTML=h;$('result-text').textContent=tie?`${pile.length} Karte(n) auf dem Stapel.`:`+${wc} Karte(n)!`;$('result-overlay').classList.add('active')}function nextRound(){$('result-overlay').classList.remove('active');revealedStat=null;const alive=activePlayers();if(alive.length<=1){endGame(alive[0]||null);return}if(!players[currentIdx].deck.length)advanceTurn();phase='playing';renderGame()}function advanceTurn(){let t=0;do{currentIdx=(currentIdx+1)%players.length;t++}while(players[currentIdx].deck.length===0&&t<players.length)}function endGame(w){phase='ended';showScreen('end');if(w){$('end-icon').textContent='🏆';$('end-title').innerHTML=`<span style="color:${w.color}">${w.icon} ${w.name}</span> gewinnt!`;$('end-text').textContent=`Alle ${w.deck.length} Karten gesammelt!`;if(w.type==='human')launchConfetti()}else{$('end-icon').textContent='🤷';$('end-title').textContent='Unentschieden!';$('end-text').textContent=''}}function launchConfetti(){const c=$('confetti-canvas'),ctx=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;const cols=['#f1c40f','#e74c3c','#3498db','#2ecc71','#9b59b6','#e67e22','#1abc9c'];const parts=Array.from({length:150},()=>({x:Math.random()*c.width,y:Math.random()*c.height-c.height,w:Math.random()*10+5,h:Math.random()*6+3,color:cols[Math.random()*cols.length|0],speed:Math.random()*3+2,angle:Math.random()*Math.PI*2,spin:(Math.random()-.5)*.2,drift:(Math.random()-.5)*2}));let f=0;(function draw(){ctx.clearRect(0,0,c.width,c.height);parts.forEach(p=>{p.y+=p.speed;p.x+=p.drift;p.angle+=p.spin;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.angle);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore()});if(++f<200)requestAnimationFrame(draw);else ctx.clearRect(0,0,c.width,c.height)})()}
+const MEGA_PRE=['Turbo','Mega','Ultra','Hyper','Super','Blitz','Donner','Laser','Plasma','Quanten','Nitro','Astro','Cyber','Titan'],MEGA_MID=['Jet','Falke','Adler','Drache','Phönix','Titan','Hammer','Rakete','Stern','Panzer','Wolf','Hai','Kraken','Komet'],MEGA_SUF=['9000','X','Pro Max','Supreme','Ultimate','Infinity','Omega','Extreme','Z','Plus Ultra','EX','Deluxe','Destroyer','3000'],MEGA_EMO=['🚀','💥','⚡','🔥','💎','🌟','🦅','🐉','☄️','👑','💀','🛸','🌪️','🦈'];const pick=a=>a[Math.random()*a.length|0];function randomMegaName(){return`${pick(MEGA_PRE)}-${pick(MEGA_MID)} ${pick(MEGA_SUF)}`}function toast(m){const c=$('toast-container');if(!c)return;const t=document.createElement('div');t.className='toast';t.innerHTML=m;c.appendChild(t);setTimeout(()=>{t.classList.add('toast-out');setTimeout(()=>t.remove(),400)},2800)}function cheatPlayer(){return players.find(p=>p.type==='human'&&p.deck.length>0)||players[0]}function needsGame(){if(phase!=='playing'&&phase!=='comparing'){toast('⚠️ Starte zuerst ein Spiel!');return false}return true}
+function cheatMegaJet(){if(!needsGame())return;const p=cheatPlayer(),n=randomMegaName(),e=pick(MEGA_EMO);p.deck.unshift({id:'mega_'+Date.now(),group:'X',number:99,name:n,category:'MEGA JET',emoji:e,stats:{speed:50000+(Math.random()*50000|0),range:500000+(Math.random()*500000|0),wingspan:500+(Math.random()*500|0),length:200+(Math.random()*300|0),altitude:50000+(Math.random()*50000|0),firstFlight:2099}});renderGame();toast(`🚀 <b>${n}</b> ${e} erstellt!`)}function cheatCustomJet(){if(!needsGame())return;const p=cheatPlayer(),n=$('mj-name')?.value?.trim()||randomMegaName();p.deck.unshift({id:'mega_'+Date.now(),group:'X',number:99,name:n,category:'MEGA JET',emoji:'🚀',stats:{speed:parseFloat($('mj-speed')?.value)||99999,range:parseFloat($('mj-range')?.value)||999999,wingspan:parseFloat($('mj-wingspan')?.value)||999,length:parseFloat($('mj-length')?.value)||500,altitude:parseFloat($('mj-altitude')?.value)||100000,firstFlight:parseInt($('mj-year')?.value)||2099}});renderGame();toast(`🛠️ <b>${n}</b> als Top-Karte!`)}function cheatSteal(n){if(!needsGame())return;const p=cheatPlayer();let s=0;for(let i=0;i<n;i++){const o=players.filter(x=>x!==p&&x.deck.length>0);if(!o.length)break;const op=pick(o),ci=Math.random()*op.deck.length|0;p.deck.push(op.deck.splice(ci,1)[0]);s++}renderGame();toast(`🃏 ${s} Karte(n) gestohlen!`)}function cheatBoost(){if(!needsGame())return;const p=cheatPlayer();if(!p.deck.length)return;const c=p.deck[0];Object.keys(c.stats).forEach(k=>{if(k!=='firstFlight')c.stats[k]=Math.round(c.stats[k]*10)});c.name='⚡ '+c.name;renderGame();toast(`⬆️ <b>${c.name}</b> x10!`)}function cheatTrillion(){if(!needsGame())return;const p=cheatPlayer();if(!p.deck.length)return;const c=p.deck[0];Object.keys(c.stats).forEach(k=>{if(k!=='firstFlight')c.stats[k]=Math.round(c.stats[k]*1e15)});c.name='💀 '+c.name;c.emoji='💀';renderGame();toast(`💀 <b>${c.name}</b> x1 Billiarde!!!`)}function cheatWeaken(){if(!needsGame())return;const p=cheatPlayer();let c=0;players.forEach(o=>{if(o===p||!o.deck.length)return;Object.keys(o.deck[0].stats).forEach(k=>{if(k!=='firstFlight')o.deck[0].stats[k]=Math.round(o.deck[0].stats[k]/3)});c++});renderGame();toast(`💣 ${c} Gegner geschwächt!`)}function cheatPeek(){if(!needsGame())return;const p=cheatPlayer(),others=players.filter(o=>o!==p&&o.deck.length>0);let h='';others.forEach(o=>{h+=`<div class="peek-player"><h4 style="color:${o.color}">${o.icon} ${o.name} (${o.deck.length})</h4><div class="peek-cards">`;o.deck.forEach(c=>{const gc=GROUP_COLORS[c.group]||{bg:'#555'};h+=`<div class="peek-card"><span class="peek-badge" style="background:${gc.bg}">${c.group}${c.number}</span>${c.emoji||'✈️'} <b>${c.name}</b><span class="peek-stats">⚡${c.stats.speed} 📏${c.stats.range}</span></div>`});h+='</div></div>'});$('peek-content').innerHTML=h;$('peek-modal').classList.add('active');toast('👀 Gegner-Karten aufgedeckt!')}function cheatBestOnTop(){if(!needsGame())return;const p=cheatPlayer();if(p.deck.length<2)return;const all=FlugzeugData.getAll(),mx={};Object.keys(STAT_META).forEach(k=>{mx[k]=Math.max(...all.map(a=>a.stats[k]||0),...p.deck.map(c=>c.stats[k]||0))});p.deck.sort((a,b)=>{const sa=Object.keys(STAT_META).reduce((s,k)=>s+(mx[k]?a.stats[k]/mx[k]:0),0),sb=Object.keys(STAT_META).reduce((s,k)=>s+(mx[k]?b.stats[k]/mx[k]:0),0);return sb-sa});renderGame();toast(`🔀 <b>${p.deck[0].name}</b> ist jetzt oben!`)}function cheatWin(){if(!needsGame())return;const p=cheatPlayer();players.forEach(o=>{if(o===p)return;p.deck.push(...o.deck);o.deck=[]});p.deck.push(...pile);pile=[];renderPlayerBar();toast('🏆 ALLE Karten!');setTimeout(()=>endGame(p),600)}function cheatGiveCard(id){if(!needsGame())return;const p=cheatPlayer(),all=FlugzeugData.getAll(),card=all.find(a=>a.id===id);if(!card)return;const copy=JSON.parse(JSON.stringify(card));copy.id=card.id+'_c'+Date.now();p.deck.unshift(copy);renderGame();renderDeckMgr();toast(`🃏 <b>${card.name}</b> hinzugefügt!`)}function cheatRandomEvent(){if(!needsGame())return;const p=cheatPlayer();[()=>cheatMegaJet(),()=>cheatSteal(3),()=>cheatBoost(),()=>{if(!p.deck.length)return;const o=p.deck[0],cl=JSON.parse(JSON.stringify(o));cl.id='clone_'+Date.now();cl.name=o.name+' (Klon)';p.deck.splice(1,0,cl);renderGame();toast(`🧬 <b>${cl.name}</b> geklont!`)},()=>{if(!p.deck.length)return;const c=p.deck[0];Object.keys(c.stats).forEach(k=>{c.stats[k]=99999});c.name='🌟 '+c.name;renderGame();toast('✨ Goldene Rüstung!')},()=>{players.forEach(o=>{if(o===p||!o.deck.length)return;o.deck.shift()});renderGame();toast('☄️ Meteor!')},()=>cheatSteal(7),()=>{for(let i=0;i<3;i++)cheatMegaJet();toast('🛸 ALIEN-INVASION!')},()=>{if(!p.deck.length)return;const c=p.deck[0];Object.keys(c.stats).forEach(k=>{if(k!=='firstFlight')c.stats[k]=Math.round(c.stats[k]*100)});c.name='💀 GOTT-MODUS '+c.name;c.emoji='💀';renderGame();toast('💀 GOTT-MODUS! x100!')}][Math.random()*9|0]()}function cheatRandomName(){const el=$('mj-name');if(el)el.value=randomMegaName()}
+let deckMgrMode='add';function deckMgrTab(mode){deckMgrMode=mode;document.querySelectorAll('.dm-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.dm-tab').forEach(t=>{if((mode==='add'&&t.textContent.includes('Hinzufügen'))||(mode==='my'&&t.textContent.includes('Mein Deck'))||(mode==='give-opp'&&t.textContent.includes('Gegner')))t.classList.add('active')});renderDeckMgr()}function renderDeckMgr(){const el=$('deck-mgr-content');if(!el)return;if(phase!=='playing'&&phase!=='comparing'){el.innerHTML='<div class="dm-hint">Starte ein Spiel!</div>';return}if(deckMgrMode==='add')renderDeckMgrAdd(el);else if(deckMgrMode==='my')renderDeckMgrMy(el);else if(deckMgrMode==='give-opp')renderDeckMgrOpp(el)}function renderDeckMgrAdd(el){const all=FlugzeugData.getAll().sort((a,b)=>a.group.localeCompare(b.group)||a.number-b.number),groups=[...new Set(all.map(a=>a.group))].sort();let h='<div class="dm-hint">Tippe auf eine Karte zum Hinzufügen</div>';groups.forEach(g=>{const gc=GROUP_COLORS[g]||{bg:'#555',name:g},cards=all.filter(a=>a.group===g);h+=`<div class="dm-group"><div class="dm-group-head" style="background:${gc.bg}">${g} – ${gc.name}</div><div class="dm-cards">`;cards.forEach(c=>{h+=`<button class="dm-card" onclick="Game.cheatGiveCard('${c.id}')"><span class="dm-badge" style="background:${gc.bg}">${c.group}${c.number}</span><span class="dm-emoji">${c.emoji||'✈️'}</span><span class="dm-name">${c.name}</span><span class="dm-mini-stats">⚡${fmt('speed',c.stats.speed)}</span></button>`});h+='</div></div>'});el.innerHTML=h}function renderDeckMgrMy(el){const p=cheatPlayer();if(!p||!p.deck.length){el.innerHTML='<div class="dm-hint">Deck leer!</div>';return}let h=`<div class="dm-hint">${p.deck.length} Karten</div><div class="dm-my-list">`;p.deck.forEach((c,i)=>{const gc=GROUP_COLORS[c.group]||{bg:'#555'};h+=`<div class="dm-my-row${i===0?' dm-my-top':''}"><span class="dm-badge" style="background:${gc.bg}">${c.group}${c.number}</span><span class="dm-emoji-sm">${c.emoji||'✈️'}</span><span class="dm-my-name">${c.name}</span><span class="dm-my-stats">⚡${fmt('speed',c.stats.speed)}</span>${i>0?`<button class="dm-action dm-up" onclick="Game.deckMgrMove(${i})">⬆</button>`:'<span class="dm-action" style="opacity:.2">★</span>'}<button class="dm-action dm-del" onclick="Game.deckMgrRemove(${i})">✕</button></div>`});h+='</div>';el.innerHTML=h}function deckMgrMove(i){if(!needsGame())return;const p=cheatPlayer();if(i<=0||i>=p.deck.length)return;const c=p.deck.splice(i,1)[0];p.deck.unshift(c);renderGame();renderDeckMgr();toast(`⬆ <b>${c.name}</b> oben!`)}function deckMgrRemove(i){if(!needsGame())return;const p=cheatPlayer();if(i<0||i>=p.deck.length)return;const c=p.deck.splice(i,1)[0];renderGame();renderDeckMgr();toast(`✕ <b>${c.name}</b> entfernt.`)}
+let oppTarget=null;function renderDeckMgrOpp(el){const me=cheatPlayer(),opps=players.filter(p=>p!==me);if(!opps.length){el.innerHTML='<div class="dm-hint">Keine Gegner!</div>';return}if(!oppTarget||!opps.find(o=>o.idx===oppTarget))oppTarget=opps[0].idx;let h='<div class="dm-hint">Wähle Gegner und gib Karten</div><div class="dm-opp-select">';opps.forEach(o=>{h+=`<button class="dm-opp-btn${o.idx===oppTarget?' active':''}" style="--c:${o.color}" onclick="Game.setOppTarget(${o.idx})">${o.icon} ${o.name} (${o.deck.length})</button>`});h+='</div>';const all=FlugzeugData.getAll().sort((a,b)=>cardScore(b)-cardScore(a));h+='<div class="dm-cards">';all.forEach(c=>{const gc=GROUP_COLORS[c.group]||{bg:'#555'};h+=`<button class="dm-card dm-card-opp" onclick="Game.cheatGiveToOpp('${c.id}')"><span class="dm-badge" style="background:${gc.bg}">${c.group}${c.number}</span><span class="dm-emoji">${c.emoji||'✈️'}</span><span class="dm-name">${c.name}</span></button>`});h+='</div><div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">';h+=`<button class="cheat-btn cb-gold" style="flex:1;font-size:.7rem" onclick="Game.cheatGiveOppTop(5)">🏅 Top 5</button>`;h+=`<button class="cheat-btn cb-gold" style="flex:1;font-size:.7rem" onclick="Game.cheatGiveOppTop(10)">🏅 Top 10</button>`;h+=`<button class="cheat-btn cb-rainbow" style="flex:1;font-size:.7rem" onclick="Game.cheatGiveOppAll()">🗃️ ALLE</button></div>`;el.innerHTML=h}function setOppTarget(i){oppTarget=i;renderDeckMgr()}function cheatGiveToOpp(id){if(!needsGame())return;const opp=players.find(p=>p.idx===oppTarget);if(!opp)return;const all=FlugzeugData.getAll(),card=all.find(a=>a.id===id);if(!card)return;const cp=JSON.parse(JSON.stringify(card));cp.id=card.id+'_o'+Date.now();opp.deck.unshift(cp);renderGame();renderDeckMgr();toast(`🎁 <b>${card.name}</b> an <b>${opp.name}</b>!`)}function cheatGiveOppTop(n){if(!needsGame())return;const opp=players.find(p=>p.idx===oppTarget);if(!opp)return;const all=FlugzeugData.getAll(),ranked=[...all].sort((a,b)=>cardScore(b)-cardScore(a)).slice(0,n);ranked.forEach((c,i)=>{const cp=JSON.parse(JSON.stringify(c));cp.id=c.id+'_ot'+Date.now()+i;opp.deck.unshift(cp)});renderGame();renderDeckMgr();toast(`🎁 Top ${n} an <b>${opp.name}</b>!`)}function cheatGiveOppAll(){if(!needsGame())return;const opp=players.find(p=>p.idx===oppTarget);if(!opp)return;FlugzeugData.getAll().forEach((c,i)=>{const cp=JSON.parse(JSON.stringify(c));cp.id=c.id+'_oa'+Date.now()+i;opp.deck.unshift(cp)});renderGame();renderDeckMgr();toast(`🎁 ALLE an <b>${opp.name}</b>!`)}
+function cardScore(c){const all=FlugzeugData.getAll(),mx={};Object.keys(STAT_META).forEach(k=>{mx[k]=Math.max(...all.map(a=>a.stats[k]||0))});return Object.keys(STAT_META).reduce((s,k)=>s+(mx[k]?(c.stats[k]||0)/mx[k]:0),0)}function cheatTopCards(n){if(!needsGame())return;const p=cheatPlayer(),ranked=[...FlugzeugData.getAll()].sort((a,b)=>cardScore(b)-cardScore(a)).slice(0,n);let ad=0;ranked.forEach(c=>{const cp=JSON.parse(JSON.stringify(c));cp.id=c.id+'_t'+Date.now()+(ad++);p.deck.unshift(cp)});renderGame();toast(`🏅 Top ${n} Karten!`)}function cheatAllAces(){if(!needsGame())return;const p=cheatPlayer(),all=FlugzeugData.getAll(),groups=[...new Set(all.map(a=>a.group))].sort();let ad=0;groups.forEach(g=>{const best=all.filter(a=>a.group===g).sort((a,b)=>cardScore(b)-cardScore(a))[0];if(best){const cp=JSON.parse(JSON.stringify(best));cp.id=best.id+'_a'+Date.now()+(ad++);p.deck.unshift(cp)}});renderGame();toast(`🥇 ${groups.length} Gruppen-Asse!`)}function cheatXray(){if(!needsGame())return;xrayOn=!xrayOn;renderGame();const btn=$('xray-toggle');if(btn){btn.classList.toggle('xray-active',xrayOn);btn.textContent=xrayOn?'🔬 X-Ray AUS':'🔬 X-Ray AN'}toast(xrayOn?'🔬 X-Ray AN!':'🔬 X-Ray aus.')}
+function renderXrayPanel(){const panel=$('xray-panel');if(!panel)return;if(!xrayOn||(phase!=='playing'&&phase!=='comparing')){panel.classList.remove('active');return}panel.classList.add('active');const me=cheatPlayer();let h='';if(pile.length>0){h+=`<div class="xray-group"><div class="xray-group-title">📥 Stapel (${pile.length})</div><div class="xray-list">`;pile.forEach(c=>{const gc=GROUP_COLORS[c.group]||{bg:'#555'};h+=`<div class="xray-item"><span class="xray-badge" style="background:${gc.bg}">${c.group}${c.number}</span>${c.emoji||'✈️'} <b>${c.name}</b><span class="xray-stats">⚡${fmt('speed',c.stats.speed)}</span></div>`});h+='</div></div>'}players.forEach(p=>{if(p===me||p.deck.length===0)return;h+=`<div class="xray-group"><div class="xray-group-title" style="color:${p.color}">${p.icon} ${p.name} (${p.deck.length})</div><div class="xray-list">`;p.deck.forEach((c,i)=>{const gc=GROUP_COLORS[c.group]||{bg:'#555'};h+=`<div class="xray-item${i===0?' xray-top':''}"><span class="xray-badge" style="background:${gc.bg}">${c.group}${c.number}</span>${c.emoji||'✈️'} <b>${c.name}</b><span class="xray-stats">⚡${fmt('speed',c.stats.speed)} 📏${fmt('range',c.stats.range)}</span></div>`});h+='</div></div>'});if(me&&me.deck.length>1){h+=`<div class="xray-group"><div class="xray-group-title" style="color:${me.color}">${me.icon} Deine nächsten</div><div class="xray-list">`;me.deck.slice(1,8).forEach(c=>{const gc=GROUP_COLORS[c.group]||{bg:'#555'};h+=`<div class="xray-item xray-own"><span class="xray-badge" style="background:${gc.bg}">${c.group}${c.number}</span>${c.emoji||'✈️'} <b>${c.name}</b></div>`});if(me.deck.length>8)h+=`<div class="xray-item" style="opacity:.4">… +${me.deck.length-8}</div>`;h+='</div></div>'}panel.innerHTML=h||''}
+function cheatGrabPile(){if(!needsGame())return;if(!pile.length){toast('📥 Stapel leer!');return}const p=cheatPlayer(),c=pile.length;p.deck.unshift(...pile);pile=[];renderGame();toast(`📥 ${c} Karte(n) gezogen!`)}function cheatGiveAll(){if(!needsGame())return;const p=cheatPlayer(),all=FlugzeugData.getAll();let ad=0;all.forEach(c=>{const cp=JSON.parse(JSON.stringify(c));cp.id=c.id+'_a'+Date.now()+(ad++);p.deck.unshift(cp)});renderGame();toast(`🗃️ ALLE ${all.length} Karten!`)}function cheatSwapDeck(){if(!needsGame())return;const p=cheatPlayer(),opps=players.filter(o=>o!==p&&o.deck.length>0);if(!opps.length)return;const o=pick(opps),t=p.deck;p.deck=o.deck;o.deck=t;renderGame();toast(`🌀 Deck mit <b>${o.name}</b> getauscht!`)}function cheatMagnet(){if(!needsGame())return;const p=cheatPlayer();let c=0;players.forEach(o=>{if(o===p||!o.deck.length)return;p.deck.unshift(o.deck.shift());c++});renderGame();toast(`🧲 ${c} Top-Karten!`)}function cheatCloneArmy(){if(!needsGame())return;const p=cheatPlayer();if(!p.deck.length)return;const o=p.deck[0];for(let i=0;i<5;i++){const cl=JSON.parse(JSON.stringify(o));cl.id='cl_'+Date.now()+'_'+i;cl.name=o.name+` #${i+2}`;p.deck.splice(1,0,cl)}renderGame();toast(`🎭 5x <b>${o.name}</b>!`)}function cheatFusion(){if(!needsGame())return;const p=cheatPlayer();if(p.deck.length<2){toast('⚠️ 2 Karten nötig!');return}const a=p.deck.shift(),b=p.deck.shift(),f={id:'fus_'+Date.now(),group:'X',number:99,name:`${a.name} ⚡ ${b.name}`,category:'FUSION',emoji:'💫',stats:{}};Object.keys(STAT_META).forEach(k=>{f.stats[k]=Math.max(a.stats[k],b.stats[k])});p.deck.unshift(f);renderGame();toast(`💫 FUSION! <b>${f.name}</b>`)}function cheatTsunami(){if(!needsGame())return;const p=cheatPlayer();let t=0;players.forEach(o=>{if(o===p||!o.deck.length)return;const r=Math.ceil(o.deck.length/2);o.deck.splice(0,r);t+=r});renderGame();toast(`🌊 ${t} Karten weg!`)}function cheatFreeze(){if(!needsGame())return;const p=cheatPlayer();let c=0;players.forEach(o=>{if(o===p||!o.deck.length)return;Object.keys(o.deck[0].stats).forEach(k=>{o.deck[0].stats[k]=1});o.deck[0].name='🧊 '+o.deck[0].name;c++});renderGame();toast(`🧊 ${c} Gegner eingefroren!`)}function cheatJoker(){if(!needsGame())return;const p=cheatPlayer(),all=FlugzeugData.getAll(),j={id:'jok_'+Date.now(),group:'X',number:1,name:'★ JOKER SUPREME ★',category:'JOKER',emoji:'🃏',stats:{}};Object.keys(STAT_META).forEach(k=>{j.stats[k]=Math.max(...all.map(a=>a.stats[k]||0))*2});p.deck.unshift(j);renderGame();toast('🃏 <b>JOKER SUPREME</b>!')}function cheatShuffleChaos(){if(!needsGame())return;const ac=[];players.forEach(p=>{ac.push(...p.deck);p.deck=[]});ac.push(...pile);pile=[];const sh=shuffle(ac);let ci=0;sh.forEach(c=>{players[ci%players.length].deck.push(c);ci++});renderGame();toast('🎪 CHAOS!')}function cheatTimewarp(){if(!needsGame())return;const p=cheatPlayer();if(!p.deck.length)return;const c=p.deck[0];c.stats.speed=299792;c.stats.range=9999999;c.stats.wingspan=9999;c.stats.length=9999;c.stats.altitude=999999;c.stats.firstFlight=3000;c.name='🔮 '+c.name+' [ZUKUNFT]';c.emoji='🔮';renderGame();toast('🔮 ZEITREISE!')}function cheatJackpot(){if(!needsGame())return;for(let i=0;i<3;i++)cheatMegaJet();cheatBoost();toast('🎰 JACKPOT!')}
+document.addEventListener('images-loaded',()=>{if(phase==='playing'||phase==='comparing'){renderActiveCard();renderOpponents()}});document.addEventListener('DOMContentLoaded',()=>renderSetup());
+return{showScreen,start,selectStat,nextRound,addPlayer,removePlayer,setPlayerName,setPlayerType,renderSetup,cheatMegaJet,cheatCustomJet,cheatSteal,cheatBoost,cheatWeaken,cheatPeek,cheatBestOnTop,cheatWin,cheatGiveCard,cheatRandomEvent,cheatRandomName,cheatTopCards,cheatAllAces,cheatXray,cheatGrabPile,cheatGiveAll,cheatSwapDeck,cheatMagnet,cheatCloneArmy,cheatFusion,cheatTsunami,cheatFreeze,cheatJoker,cheatShuffleChaos,cheatTimewarp,cheatJackpot,cheatTrillion,deckMgrTab,deckMgrMove,deckMgrRemove,renderDeckMgr,setOppTarget,cheatGiveToOpp,cheatGiveOppTop,cheatGiveOppAll,populateCheatCards:()=>{},cheatGiveSelected:()=>{}}})();
+</script>
+<script>
+// ═══ ADMIN ═══
+const Admin=(()=>{let editingId=null;const $=id=>document.getElementById(id);function toggle(){const sb=$('admin-sidebar'),bd=$('admin-backdrop'),open=sb.classList.toggle('open');bd.classList.toggle('active',open);if(open){render();if(typeof Game!=='undefined'&&Game.renderDeckMgr)Game.renderDeckMgr()}}function close(){$('admin-sidebar').classList.remove('open');$('admin-backdrop').classList.remove('active')}function render(){const all=FlugzeugData.getAll();$('sidebar-count').textContent=`${all.length} Flugzeuge`;const sorted=[...all].sort((a,b)=>a.group!==b.group?a.group.localeCompare(b.group):a.number-b.number);$('sidebar-cards').innerHTML=sorted.map(c=>{const gc=GROUP_COLORS[c.group]||{bg:'#555'};return`<div class="sb-card"><div class="sb-card-head"><span class="sb-badge" style="background:${gc.bg}">${c.group}${c.number}</span><span class="sb-emoji">${c.emoji||'✈️'}</span><span class="sb-name">${c.name}</span></div><div class="sb-card-actions"><button class="sb-edit" onclick="Admin.openEdit('${c.id}')">✏️</button><button class="sb-del" onclick="Admin.remove('${c.id}')">🗑️</button></div></div>`}).join('')}function openAdd(){editingId=null;$('modal-title').textContent='✈️ Neu';$('aircraft-form').reset();$('form-id').value='';$('edit-modal').classList.add('active')}function openEdit(id){const c=FlugzeugData.getById(id);if(!c)return;editingId=id;$('modal-title').textContent='✏️ Bearbeiten';$('form-id').value=c.id;$('form-name').value=c.name;$('form-emoji').value=c.emoji||'';$('form-group').value=c.group;$('form-number').value=c.number;$('form-category').value=c.category||'';$('form-wiki').value=c.wikiTitle||'';$('form-speed').value=c.stats.speed;$('form-range').value=c.stats.range;$('form-wingspan').value=c.stats.wingspan;$('form-length').value=c.stats.length;$('form-altitude').value=c.stats.altitude;$('form-firstFlight').value=c.stats.firstFlight;$('edit-modal').classList.add('active')}function closeEdit(){$('edit-modal').classList.remove('active');editingId=null}function save(e){e.preventDefault();const a={id:editingId||($('form-group').value.toUpperCase()+$('form-number').value+'_'+Date.now()),group:$('form-group').value.toUpperCase(),number:parseInt($('form-number').value),name:$('form-name').value.trim(),emoji:$('form-emoji').value.trim()||'✈️',category:$('form-category').value.trim(),wikiTitle:$('form-wiki').value.trim(),stats:{speed:parseFloat($('form-speed').value),range:parseFloat($('form-range').value),wingspan:parseFloat($('form-wingspan').value),length:parseFloat($('form-length').value),altitude:parseFloat($('form-altitude').value),firstFlight:parseInt($('form-firstFlight').value)}};if(editingId)FlugzeugData.update(editingId,a);else FlugzeugData.add(a);if(a.wikiTitle)ImageCache.fetchOne(a);closeEdit();render()}function remove(id){const c=FlugzeugData.getById(id);if(!c||!confirm(`"${c.name}" löschen?`))return;FlugzeugData.remove(id);render()}function resetData(){if(!confirm('Zurücksetzen?'))return;FlugzeugData.resetToDefault();render()}function openExport(){$('export-data').value=FlugzeugData.exportJSON();$('export-modal').classList.add('active')}function closeExport(){$('export-modal').classList.remove('active')}function copyExport(){navigator.clipboard.writeText($('export-data').value).then(()=>alert('Kopiert!')).catch(()=>{$('export-data').select();document.execCommand('copy');alert('Kopiert!')})}function openImport(){$('import-data').value='';$('import-modal').classList.add('active')}function closeImport(){$('import-modal').classList.remove('active')}function doImport(){const j=$('import-data').value.trim();if(!j){alert('JSON einfügen!');return}try{FlugzeugData.importJSON(j);closeImport();render();ImageCache.fetchAll();alert('OK!')}catch(e){alert('Fehler: '+e.message)}}return{toggle,close,render,openAdd,openEdit,closeEdit,save,remove,resetData,openExport,closeExport,copyExport,openImport,closeImport,doImport}})();
+</script>
+</body>
+</html>

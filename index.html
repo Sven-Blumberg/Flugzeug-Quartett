@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flugzeug Quartett</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+</head>
+<body>
+  <div class="stars"></div>
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- ══ ADMIN SIDEBAR ══ -->
+  <div id="admin-backdrop" class="admin-backdrop" onclick="Admin.close()"></div>
+  <aside id="admin-sidebar" class="admin-sidebar">
+    <div class="sidebar-header">
+      <h2>⚙️ Kartenverwaltung</h2>
+      <button class="sidebar-close" onclick="Admin.close()">✕</button>
+    </div>
+    <div class="sidebar-actions">
+      <button class="btn btn-success btn-xs" onclick="Admin.openAdd()">➕ Neu</button>
+      <button class="btn btn-secondary btn-xs" onclick="Admin.openExport()">📤</button>
+      <button class="btn btn-secondary btn-xs" onclick="Admin.openImport()">📥</button>
+      <button class="btn btn-danger btn-xs" onclick="Admin.resetData()">🔄</button>
+    </div>
+    <div class="sidebar-scroll">
+    <div class="sidebar-count" id="sidebar-count"></div>
+    <div class="sidebar-cards" id="sidebar-cards"></div>
+
+    <!-- ── CHEATS SECTION ── -->
+    <div class="sidebar-divider"></div>
+    <div class="cheats-section">
+      <div class="cheats-header">🎮 CHEATS</div>
+
+      <div class="cheat-grid">
+        <button class="cheat-btn cb-gold" onclick="Game.cheatMegaJet()">🚀 Mega Jet!</button>
+        <button class="cheat-btn cb-blue" onclick="Game.cheatBoost()">⬆️ x10 Power</button>
+        <button class="cheat-btn cb-nuke" onclick="Game.cheatTrillion()">💀 x1 Billiarde</button>
+        <button class="cheat-btn cb-purple" onclick="Game.cheatSteal(5)">🃏 5 Karten klauen</button>
+        <button class="cheat-btn cb-green" onclick="Game.cheatBestOnTop()">🔀 Beste oben</button>
+        <button class="cheat-btn cb-red" onclick="Game.cheatWeaken()">💣 Gegner schwächen</button>
+        <button class="cheat-btn cb-teal" onclick="Game.cheatPeek()">👀 Spicken</button>
+        <button id="xray-toggle" class="cheat-btn cb-xray" onclick="Game.cheatXray()">🔬 X-Ray AN</button>
+        <button class="cheat-btn cb-orange" onclick="Game.cheatRandomEvent()">🎲 Zufalls-Event</button>
+        <button class="cheat-btn cb-rainbow" onclick="Game.cheatWin()">🏆 Sofort gewinnen</button>
+      </div>
+
+      <!-- NEUE MEGA CHEATS -->
+      <div class="cheat-builder" style="margin-top:8px">
+        <div class="builder-title">💀 MEGA CHEATS</div>
+        <div class="cheat-grid">
+          <button class="cheat-btn cb-cyan" onclick="Game.cheatMagnet()">🧲 Magnet</button>
+          <button class="cheat-btn cb-pink" onclick="Game.cheatCloneArmy()">🎭 5x Klonen</button>
+          <button class="cheat-btn cb-fire" onclick="Game.cheatFusion()">💫 Fusion</button>
+          <button class="cheat-btn cb-ice" onclick="Game.cheatFreeze()">🧊 Einfrieren</button>
+          <button class="cheat-btn cb-wave" onclick="Game.cheatTsunami()">🌊 Tsunami</button>
+          <button class="cheat-btn cb-swap" onclick="Game.cheatSwapDeck()">🌀 Deck tauschen</button>
+          <button class="cheat-btn cb-star" onclick="Game.cheatJoker()">🃏 Joker Supreme</button>
+          <button class="cheat-btn cb-chaos" onclick="Game.cheatShuffleChaos()">🎪 Shuffle Chaos</button>
+          <button class="cheat-btn cb-time" onclick="Game.cheatTimewarp()">🔮 Zeitreise</button>
+          <button class="cheat-btn cb-jackpot" onclick="Game.cheatJackpot()">🎰 JACKPOT</button>
+        </div>
+      </div>
+
+      <!-- Top-Karten -->
+      <div class="cheat-builder" style="margin-top:8px">
+        <div class="builder-title">🏅 Top-Karten</div>
+        <div class="cheat-top-row">
+          <button class="cheat-btn cb-gold" onclick="Game.cheatTopCards(5)">🏅 Top 5</button>
+          <button class="cheat-btn cb-gold" onclick="Game.cheatTopCards(7)">🏅 Top 7</button>
+          <button class="cheat-btn cb-gold" onclick="Game.cheatTopCards(10)">🏅 Top 10</button>
+        </div>
+        <button class="cheat-btn cb-rainbow xray-full" onclick="Game.cheatAllAces()">🥇 Alle Gruppen-Asse</button>
+        <button class="cheat-btn cb-purple xray-full" onclick="Game.cheatGrabPile()">📥 Stapel ziehen</button>
+        <button class="cheat-btn cb-rainbow xray-full" onclick="Game.cheatGiveAll()">🗃️ ALLE Karten geben</button>
+      </div>
+
+      <!-- Mega Jet Builder -->
+      <div class="cheat-builder">
+        <div class="builder-title">🛠️ Mega Jet Builder</div>
+        <div class="builder-name-row">
+          <input type="text" id="mj-name" value="Turbo-Blitz 9000" placeholder="Name…">
+          <button class="dice-btn" onclick="Game.cheatRandomName()" title="Zufallsname">🎲</button>
+        </div>
+        <div class="builder-stats">
+          <label>⚡ Speed<input type="number" id="mj-speed" value="99999"></label>
+          <label>📏 Range<input type="number" id="mj-range" value="999999"></label>
+          <label>↔️ Spannw.<input type="number" id="mj-wingspan" value="999"></label>
+          <label>📐 Länge<input type="number" id="mj-length" value="500"></label>
+          <label>⬆️ Höhe<input type="number" id="mj-altitude" value="100000"></label>
+          <label>📅 Jahr<input type="number" id="mj-year" value="2099"></label>
+        </div>
+        <button class="cheat-btn cb-gold builder-go" onclick="Game.cheatCustomJet()">🚀 Erstellen!</button>
+      </div>
+
+      <!-- Deck Manager -->
+      <div class="cheat-builder">
+        <div class="builder-title">🃏 Deck Manager – Karten aussuchen</div>
+        <div class="deck-mgr-tabs">
+          <button class="dm-tab active" onclick="Game.deckMgrTab('add')">➕ Hinzufügen</button>
+          <button class="dm-tab" onclick="Game.deckMgrTab('my')">🗂️ Mein Deck</button>
+          <button class="dm-tab" onclick="Game.deckMgrTab('give-opp')">🎁 Gegner</button>
+        </div>
+        <div id="deck-mgr-content"></div>
+      </div>
+    </div>
+    </div>
+  </aside>
+
+  <!-- ══ ADMIN GEAR BUTTON (always visible) ══ -->
+  <button class="admin-gear" onclick="Admin.toggle()" title="Kartenverwaltung">⚙️</button>
+
+  <div class="container">
+
+    <!-- ═══════ START SCREEN ═══════ -->
+    <div id="start-screen" class="screen active">
+      <span class="title-plane">✈️</span>
+      <h1 class="game-title">Flugzeug<br><span class="accent">Quartett</span></h1>
+      <p class="subtitle">Wähle die beste Eigenschaft und besiege deine Gegner!</p>
+      <div class="start-links">
+        <button class="btn btn-primary" onclick="Game.showScreen('setup')">✈️ Spiel starten</button>
+      </div>
+    </div>
+
+    <!-- ═══════ SETUP SCREEN ═══════ -->
+    <div id="setup-screen" class="screen">
+      <h1 class="setup-title">🎮 Spieler einrichten</h1>
+      <p class="setup-sub">Füge Spieler hinzu und wähle Mensch oder Computer</p>
+
+      <div class="players-config" id="players-config"></div>
+
+      <div class="setup-btns">
+        <button class="btn btn-secondary btn-sm" id="add-player-btn" onclick="Game.addPlayer()">➕ Spieler hinzufügen</button>
+      </div>
+
+      <div class="setup-start">
+        <button class="btn btn-secondary btn-sm" onclick="Game.showScreen('start')">← Zurück</button>
+        <button class="btn btn-primary" onclick="Game.start()" id="start-game-btn">🚀 Spiel starten</button>
+      </div>
+
+      <div class="setup-card-info" id="setup-card-info"></div>
+    </div>
+
+    <!-- ═══════ GAME SCREEN ═══════ -->
+    <div id="game-screen" class="screen">
+      <div class="player-bar" id="player-bar"></div>
+      <div class="message-bar" id="message-bar"></div>
+
+      <div class="game-area">
+        <div class="active-card-area">
+          <div class="active-label" id="active-label">Deine Karte</div>
+          <div class="card" id="active-card"></div>
+        </div>
+
+        <div class="opponents-area" id="opponents-area"></div>
+      </div>
+
+      <!-- X-Ray Live Panel -->
+      <div class="xray-panel" id="xray-panel"></div>
+    </div>
+
+    <!-- ═══════ END SCREEN ═══════ -->
+    <div id="end-screen" class="screen">
+      <div class="end-icon" id="end-icon">🏆</div>
+      <h1 class="end-title" id="end-title">Gewonnen!</h1>
+      <p class="end-text" id="end-text"></p>
+      <div class="start-links">
+        <button class="btn btn-primary" onclick="Game.showScreen('setup')">🔄 Nochmal spielen</button>
+        <button class="btn btn-secondary" onclick="Game.showScreen('start')">🏠 Hauptmenü</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RESULT OVERLAY ══ -->
+  <div class="result-overlay" id="result-overlay">
+    <div class="result-box">
+      <div class="result-icon" id="result-icon">✅</div>
+      <h2 class="result-title" id="result-title"></h2>
+      <div class="result-compare" id="result-compare"></div>
+      <p class="result-text" id="result-text"></p>
+      <button class="btn btn-primary btn-sm" onclick="Game.nextRound()">Weiter ➜</button>
+    </div>
+  </div>
+
+  <!-- ══ EDIT AIRCRAFT MODAL ══ -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+      <h2 id="modal-title">✈️ Flugzeug hinzufügen</h2>
+      <form id="aircraft-form" onsubmit="Admin.save(event)">
+        <input type="hidden" id="form-id">
+        <div class="form-row">
+          <div class="form-group"><label>Name</label><input type="text" id="form-name" required></div>
+          <div class="form-group"><label>Emoji</label><input type="text" id="form-emoji" maxlength="4"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Gruppe (A–Z)</label><input type="text" id="form-group" maxlength="1" required style="text-transform:uppercase"></div>
+          <div class="form-group"><label>Nummer</label><input type="number" id="form-number" min="1" max="99" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Kategorie</label><input type="text" id="form-category"></div>
+          <div class="form-group"><label>Wikipedia-Artikel</label><input type="text" id="form-wiki" placeholder="z.B. Boeing_747"></div>
+        </div>
+        <hr style="border-color:rgba(255,255,255,.1);margin:16px 0">
+        <div class="form-row">
+          <div class="form-group"><label>⚡ Geschwindigkeit (km/h)</label><input type="number" id="form-speed" step="any" required></div>
+          <div class="form-group"><label>📏 Reichweite (km)</label><input type="number" id="form-range" step="any" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>↔️ Spannweite (m)</label><input type="number" id="form-wingspan" step="any" required></div>
+          <div class="form-group"><label>📐 Länge (m)</label><input type="number" id="form-length" step="any" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>⬆️ Max. Flughöhe (m)</label><input type="number" id="form-altitude" step="any" required></div>
+          <div class="form-group"><label>📅 Erstflug (Jahr)</label><input type="number" id="form-firstFlight" min="1900" max="2030" required></div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="Admin.closeEdit()">Abbrechen</button>
+          <button type="submit" class="btn btn-primary btn-sm">💾 Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ EXPORT MODAL ══ -->
+  <div class="modal-overlay" id="export-modal">
+    <div class="modal">
+      <h2>📤 Exportieren</h2>
+      <textarea id="export-data" readonly></textarea>
+      <div class="form-actions">
+        <button class="btn btn-secondary btn-sm" onclick="Admin.closeExport()">Schließen</button>
+        <button class="btn btn-primary btn-sm" onclick="Admin.copyExport()">📋 Kopieren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ IMPORT MODAL ══ -->
+  <div class="modal-overlay" id="import-modal">
+    <div class="modal">
+      <h2>📥 Importieren</h2>
+      <textarea id="import-data" placeholder="JSON-Daten einfügen…"></textarea>
+      <div class="form-actions">
+        <button class="btn btn-secondary btn-sm" onclick="Admin.closeImport()">Abbrechen</button>
+        <button class="btn btn-primary btn-sm" onclick="Admin.doImport()">📥 Importieren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PEEK MODAL ══ -->
+  <div class="modal-overlay" id="peek-modal">
+    <div class="modal" style="max-width:640px">
+      <h2>👀 Gegner-Karten</h2>
+      <div id="peek-content"></div>
+      <div class="form-actions" style="margin-top:16px">
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('peek-modal').classList.remove('active')">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TOAST CONTAINER ══ -->
+  <div id="toast-container"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

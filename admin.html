@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel – Flugzeug Quartett</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+</head>
+<body class="admin-body">
+  <div class="stars"></div>
+  <div class="container" style="position:relative;z-index:1;">
+
+    <div class="admin-header">
+      <h1>⚙️ Admin Panel</h1>
+      <div class="admin-actions-bar">
+        <a href="index.html" class="btn btn-secondary btn-sm">✈️ Zum Spiel</a>
+        <button class="btn btn-success btn-sm" onclick="AdminPage.openAdd()">➕ Neu</button>
+        <button class="btn btn-secondary btn-sm" onclick="AdminPage.openExport()">📤 Export</button>
+        <button class="btn btn-secondary btn-sm" onclick="AdminPage.openImport()">📥 Import</button>
+        <button class="btn btn-danger btn-sm" onclick="AdminPage.resetData()">🔄 Reset</button>
+      </div>
+    </div>
+
+    <div id="card-count" style="margin-bottom:16px;opacity:.6;font-weight:700;"></div>
+    <div class="admin-grid" id="admin-grid"></div>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+      <h2 id="modal-title">✈️ Flugzeug hinzufügen</h2>
+      <form id="aircraft-form" onsubmit="AdminPage.save(event)">
+        <input type="hidden" id="form-id">
+        <div class="form-row">
+          <div class="form-group"><label>Name</label><input type="text" id="form-name" required></div>
+          <div class="form-group"><label>Emoji</label><input type="text" id="form-emoji" maxlength="4"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Gruppe</label><input type="text" id="form-group" maxlength="1" required style="text-transform:uppercase"></div>
+          <div class="form-group"><label>Nummer</label><input type="number" id="form-number" min="1" max="99" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Kategorie</label><input type="text" id="form-category"></div>
+          <div class="form-group"><label>Wikipedia-Artikel</label><input type="text" id="form-wiki" placeholder="z.B. Boeing_747"></div>
+        </div>
+        <hr style="border-color:rgba(255,255,255,.1);margin:16px 0">
+        <div class="form-row">
+          <div class="form-group"><label>⚡ Geschwindigkeit (km/h)</label><input type="number" id="form-speed" step="any" required></div>
+          <div class="form-group"><label>📏 Reichweite (km)</label><input type="number" id="form-range" step="any" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>↔️ Spannweite (m)</label><input type="number" id="form-wingspan" step="any" required></div>
+          <div class="form-group"><label>📐 Länge (m)</label><input type="number" id="form-length" step="any" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>⬆️ Max. Flughöhe (m)</label><input type="number" id="form-altitude" step="any" required></div>
+          <div class="form-group"><label>📅 Erstflug (Jahr)</label><input type="number" id="form-firstFlight" min="1900" max="2030" required></div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPage.closeEdit()">Abbrechen</button>
+          <button type="submit" class="btn btn-primary btn-sm">💾 Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- EXPORT MODAL -->
+  <div class="modal-overlay" id="export-modal">
+    <div class="modal">
+      <h2>📤 Export</h2>
+      <textarea id="export-data" readonly></textarea>
+      <div class="form-actions">
+        <button class="btn btn-secondary btn-sm" onclick="AdminPage.closeExport()">Schließen</button>
+        <button class="btn btn-primary btn-sm" onclick="AdminPage.copyExport()">📋 Kopieren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPORT MODAL -->
+  <div class="modal-overlay" id="import-modal">
+    <div class="modal">
+      <h2>📥 Import</h2>
+      <textarea id="import-data" placeholder="JSON einfügen…"></textarea>
+      <div class="form-actions">
+        <button class="btn btn-secondary btn-sm" onclick="AdminPage.closeImport()">Abbrechen</button>
+        <button class="btn btn-primary btn-sm" onclick="AdminPage.doImport()">📥 Import</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script>
+  const AdminPage = (() => {
+    let editingId = null;
+    const $ = id => document.getElementById(id);
+
+    function render() {
+      const all = FlugzeugData.getAll();
+      $('card-count').textContent = `${all.length} Flugzeuge im Deck`;
+      const sorted = [...all].sort((a,b) => a.group !== b.group ? a.group.localeCompare(b.group) : a.number - b.number);
+      $('admin-grid').innerHTML = sorted.map(c => {
+        const gc = GROUP_COLORS[c.group] || {bg:'#555'};
+        const imgUrl = ImageCache.get(c.id);
+        const statKeys = Object.keys(STAT_META);
+        const stats = statKeys.map(k => {
+          const m = STAT_META[k], v = c.stats[k];
+          const f = k==='firstFlight' ? v : v.toLocaleString('de-DE');
+          return `<span class="stat-label">${m.icon} ${m.label}</span><span class="stat-value">${f}${m.unit?' '+m.unit:''}</span>`;
+        }).join('');
+        return `<div class="admin-card">
+          <div class="admin-card-header" style="background:${gc.bg}">
+            <span class="badge">${c.group}${c.number}</span>
+            <span style="font-size:.8rem;font-weight:700;opacity:.9">${c.category||''}</span>
+          </div>
+          ${imgUrl ? `<div style="height:120px;overflow:hidden"><img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.innerHTML='<div style=text-align:center;padding:20px;font-size:2rem>${c.emoji||'✈️'}</div>'"></div>` : ''}
+          <div class="admin-card-body">
+            <div class="name">${c.emoji||'✈️'} ${c.name}</div>
+            <div class="cat">${c.category||''}</div>
+            <div class="admin-card-stats">${stats}</div>
+          </div>
+          <div class="admin-card-actions">
+            <button class="btn btn-secondary btn-sm" onclick="AdminPage.openEdit('${c.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="AdminPage.remove('${c.id}')">🗑️</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function openAdd() { editingId=null; $('modal-title').textContent='✈️ Neu'; $('aircraft-form').reset(); $('form-id').value=''; $('edit-modal').classList.add('active'); }
+    function openEdit(id) {
+      const c = FlugzeugData.getById(id); if(!c)return; editingId=id;
+      $('modal-title').textContent='✏️ Bearbeiten';
+      $('form-id').value=c.id; $('form-name').value=c.name; $('form-emoji').value=c.emoji||'';
+      $('form-group').value=c.group; $('form-number').value=c.number;
+      $('form-category').value=c.category||''; $('form-wiki').value=c.wikiTitle||'';
+      $('form-speed').value=c.stats.speed; $('form-range').value=c.stats.range;
+      $('form-wingspan').value=c.stats.wingspan; $('form-length').value=c.stats.length;
+      $('form-altitude').value=c.stats.altitude; $('form-firstFlight').value=c.stats.firstFlight;
+      $('edit-modal').classList.add('active');
+    }
+    function closeEdit() { $('edit-modal').classList.remove('active'); editingId=null; }
+    function save(e) {
+      e.preventDefault();
+      const a = {
+        id: editingId || ($('form-group').value.toUpperCase()+$('form-number').value+'_'+Date.now()),
+        group:$('form-group').value.toUpperCase(), number:parseInt($('form-number').value),
+        name:$('form-name').value.trim(), emoji:$('form-emoji').value.trim()||'✈️',
+        category:$('form-category').value.trim(), wikiTitle:$('form-wiki').value.trim(),
+        stats:{speed:parseFloat($('form-speed').value),range:parseFloat($('form-range').value),
+          wingspan:parseFloat($('form-wingspan').value),length:parseFloat($('form-length').value),
+          altitude:parseFloat($('form-altitude').value),firstFlight:parseInt($('form-firstFlight').value)}
+      };
+      if(editingId) FlugzeugData.update(editingId,a); else FlugzeugData.add(a);
+      if(a.wikiTitle) ImageCache.fetchOne(a).then(()=>render());
+      closeEdit(); render();
+    }
+    function remove(id) { const c=FlugzeugData.getById(id); if(!c||!confirm(`"${c.name}" löschen?`))return; FlugzeugData.remove(id); render(); }
+    function resetData() { if(!confirm('Zurücksetzen?'))return; FlugzeugData.resetToDefault(); render(); }
+    function openExport() { $('export-data').value=FlugzeugData.exportJSON(); $('export-modal').classList.add('active'); }
+    function closeExport() { $('export-modal').classList.remove('active'); }
+    function copyExport() { navigator.clipboard.writeText($('export-data').value).then(()=>alert('Kopiert!')).catch(()=>{$('export-data').select();document.execCommand('copy');alert('Kopiert!');}); }
+    function openImport() { $('import-data').value=''; $('import-modal').classList.add('active'); }
+    function closeImport() { $('import-modal').classList.remove('active'); }
+    function doImport() { const j=$('import-data').value.trim(); if(!j){alert('JSON einfügen!');return;} try{FlugzeugData.importJSON(j);closeImport();render();ImageCache.fetchAll();alert('OK!');}catch(e){alert('Fehler: '+e.message);} }
+
+    document.addEventListener('DOMContentLoaded', () => { render(); ImageCache.fetchAll().then(()=>render()); });
+    document.addEventListener('images-loaded', render);
+
+    return { openAdd, openEdit, closeEdit, save, remove, resetData, openExport, closeExport, copyExport, openImport, closeImport, doImport };
+  })();
+  </script>
+</body>
+</html>
